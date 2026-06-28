@@ -3,8 +3,6 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from pydantic import BaseModel
 import sqlite3
 import os
-import uuid
-import shutil
 from auth import require_user
 
 router = APIRouter(prefix="/api/mindmap", tags=["mindmap"])

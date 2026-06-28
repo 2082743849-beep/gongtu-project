@@ -6,10 +6,9 @@ import json
 import os
 import secrets
 import time
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPBearer
 from pydantic import BaseModel
 
 # ── Config ─────────────────────────────────────────────────────
