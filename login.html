@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公途 · 登录</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ink: #0d1117;
+            --ink-deep: #060a0f;
+            --gold: #c9a96e;
+            --gold-light: #e8d5a3;
+            --jade: #4a9b7f;
+            --parchment: #f5f0e8;
+            --text-on-dark: rgba(245,240,232,0.92);
+            --text-sub-dark: rgba(201,169,110,0.75);
+            --text-muted-dark: rgba(245,240,232,0.45);
+            --accent-1: #8694CD;
+            --accent-2: #D6ABD8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--ink-deep);
+            color: var(--text-on-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* 背景墨迹动画 */
+        .bg-ink {
+            position: fixed; inset: 0; z-index: 0;
+            background: radial-gradient(ellipse 80% 60% at 20% 50%, rgba(73,90,145,0.15) 0%, transparent 60%),
+                        radial-gradient(ellipse 60% 80% at 80% 50%, rgba(74,155,127,0.1) 0%, transparent 60%),
+                        linear-gradient(135deg, #060a0f 0%, #0d1117 40%, #0d1520 100%);
+        }
+        .ink-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            animation: float 8s ease-in-out infinite;
+        }
+        .ink-blob:nth-child(1) { width: 400px; height: 400px; background: var(--gold); top: -10%; left: -10%; animation-delay: 0s; }
+        .ink-blob:nth-child(2) { width: 300px; height: 300px; background: var(--jade); bottom: -10%; right: -5%; animation-delay: -3s; }
+        .ink-blob:nth-child(3) { width: 200px; height: 200px; background: var(--accent-1); top: 40%; right: 20%; animation-delay: -5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(20px, -20px) scale(1.05); }
+            66% { transform: translate(-10px, 15px) scale(0.95); }
+        }
+
+        /* 主容器 */
+        .login-container {
+            position: relative; z-index: 10;
+            width: 100%; max-width: 440px;
+            padding: 20px;
+        }
+
+        /* Logo */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        .logo-icon {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, rgba(201,169,110,0.2), rgba(201,169,110,0.05));
+            border: 1px solid rgba(201,169,110,0.3);
+            border-radius: 16px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+        .logo-title {
+            font-family: 'ZCOOL XiaoWei', serif;
+            font-size: 28px;
+            color: var(--text-on-dark);
+            letter-spacing: 0.1em;
+        }
+        .logo-subtitle {
+            font-size: 13px;
+            color: var(--text-muted-dark);
+            margin-top: 6px;
+            letter-spacing: 0.08em;
+        }
+
+        /* 卡片 */
+        .card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(201,169,110,0.15);
+            border-radius: 20px;
+            padding: 36px 40px;
+        }
+
+        /* Tab切换 */
+        .tabs {
+            display: flex;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 28px;
+        }
+        .tab-btn {
+            flex: 1; padding: 10px;
+            background: transparent; border: none;
+            color: var(--text-muted-dark);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; border-radius: 9px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+        .tab-btn.active {
+            background: rgba(201,169,110,0.15);
+            color: var(--gold);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* 表单 */
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-sub-dark);
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 16px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(201,169,110,0.2);
+            border-radius: 12px;
+            color: var(--text-on-dark);
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: inherit;
+        }
+        .form-input:focus {
+            border-color: rgba(201,169,110,0.5);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(201,169,110,0.08);
+        }
+        .form-input::placeholder { color: rgba(245,240,232,0.25); }
+
+        /* 按钮 */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(201,169,110,0.8), rgba(201,169,110,0.6));
+            border: 1px solid rgba(201,169,110,0.4);
+            border-radius: 12px;
+            color: #0d1117;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            letter-spacing: 0.05em;
+            margin-top: 8px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, rgba(201,169,110,0.95), rgba(201,169,110,0.8));
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(201,169,110,0.25);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none;
+        }
+
+        /* 消息提示 */
+        .msg {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+        }
+        .msg.error {
+            background: rgba(196,75,58,0.15);
+            border: 1px solid rgba(196,75,58,0.3);
+            color: #f08080;
+            display: block;
+        }
+        .msg.success {
+            background: rgba(74,155,127,0.15);
+            border: 1px solid rgba(74,155,127,0.3);
+            color: #7dd3b5;
+            display: block;
+        }
+
+        /* 底部装饰 */
+        .footer-tip {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted-dark);
+            margin-top: 20px;
+        }
+
+        /* 分隔线 */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0;
+            color: rgba(245,240,232,0.2);
+            font-size: 12px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(201,169,110,0.15);
+        }
+
+        /* Loading动画 */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(13,17,23,0.3);
+            border-top-color: #0d1117;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="bg-ink">
+        <div class="ink-blob"></div>
+        <div class="ink-blob"></div>
+        <div class="ink-blob"></div>
+    </div>
+
+    <div class="login-container">
+        <div class="logo-area">
+            <div class="logo-icon">🏛️</div>
+            <div class="logo-title">公途</div>
+            <div class="logo-subtitle">考公备考智学平台 · 统一入口</div>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">登录</button>
+                <button class="tab-btn" id="tab-register" onclick="switchTab('register')">注册</button>
+            </div>
+
+            <!-- 登录表单 -->
+            <div id="form-login">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" id="login-username" class="form-input" placeholder="请输入用户名" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" id="login-password" class="form-input" placeholder="请输入密码" autocomplete="current-password">
+                </div>
+                <button class="btn-primary" id="btn-login" onclick="doLogin()">登录</button>
+                <div class="msg" id="login-msg"></div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div id="form-register" style="display:none">
+                <div class="form-group">
+                    <label class="form-label">用户名</label>
+                    <input type="text" id="reg-username" class="form-input" placeholder="设置用户名（3-20字符）" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" id="reg-password" class="form-input" placeholder="设置密码（至少6位）" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">确认密码</label>
+                    <input type="password" id="reg-confirm" class="form-input" placeholder="再次输入密码" autocomplete="new-password">
+                </div>
+                <button class="btn-primary" id="btn-register" onclick="doRegister()">创建账号</button>
+                <div class="msg" id="reg-msg"></div>
+            </div>
+        </div>
+
+        <div class="footer-tip">登录后可访问全部学习模块 · 数据安全保存</div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8888';
+
+        function switchTab(tab) {
+            document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+        }
+
+        function showMsg(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = 'msg ' + type;
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span>处理中...';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = btnId === 'btn-login' ? '登录' : '创建账号';
+            }
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!username || !password) {
+                showMsg('login-msg', '请填写用户名和密码', 'error');
+                return;
+            }
+            setLoading('btn-login', true);
+            try {
+                const res = await fetch(`${API}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('gontu_token', data.token);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('is_admin', data.is_admin || 0);
+                    // 管理员跳转到管理后台，普通用户跳功能页
+                    var redirectTo = (data.is_admin === 1) ? '/admin' : '/app';
+                    showMsg('login-msg', '登录成功，正在跳转...', 'success');
+                    setTimeout(() => { window.location.href = redirectTo; }, 800);
+                } else {
+                    showMsg('login-msg', data.detail || '用户名或密码错误', 'error');
+                    setLoading('btn-login', false);
+                }
+            } catch (e) {
+                showMsg('login-msg', '连接后端失败，请确认后端已启动（端口8888）', 'error');
+                setLoading('btn-login', false);
+            }
+        }
+
+        async function doRegister() {
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+            if (!username || !password) {
+                showMsg('reg-msg', '请填写用户名和密码', 'error');
+                return;
+            }
+            if (username.length < 3) {
+                showMsg('reg-msg', '用户名至少3个字符', 'error');
+                return;
+            }
+            if (password.length < 6) {
+                showMsg('reg-msg', '密码至少6位', 'error');
+                return;
+            }
+            if (password !== confirm) {
+                showMsg('reg-msg', '两次密码不一致', 'error');
+                return;
+            }
+            setLoading('btn-register', true);
+            try {
+                const res = await fetch(`${API}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('gontu_token', data.token);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('user_id', data.user_id);
+                    localStorage.setItem('is_admin', data.is_admin || 0);
+                    var redirectTo = (data.is_admin === 1) ? '/admin' : '/app';
+                    showMsg('reg-msg', '注册成功，正在跳转...', 'success');
+                    setTimeout(() => { window.location.href = redirectTo; }, 800);
+                } else {
+                    showMsg('reg-msg', data.detail || '注册失败', 'error');
+                    setLoading('btn-register', false);
+                }
+            } catch (e) {
+                showMsg('reg-msg', '连接后端失败，请确认后端已启动（端口8888）', 'error');
+                setLoading('btn-register', false);
+            }
+        }
+
+        // 回车键支持
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const activeTab = document.getElementById('tab-login').classList.contains('active') ? 'login' : 'register';
+                if (activeTab === 'login') doLogin();
+                else doRegister();
+            }
+        });
+
+        // 如果已登录，直接跳转（管理员→/admin，普通用户→/app）
+        const token = localStorage.getItem('gontu_token');
+        const cachedAdmin = parseInt(localStorage.getItem('is_admin')) || 0;
+        if (token) {
+            fetch(`${API}/api/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(async r => {
+                    if (!r.ok) return;
+                    const me = await r.json();
+                    localStorage.setItem('is_admin', me.is_admin || 0);
+                    window.location.href = (me.is_admin === 1) ? '/admin' : '/app';
+                })
+                .catch(() => null);
+        }
+    </script>
+</body>
+</html>

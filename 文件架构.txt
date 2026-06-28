@@ -1,0 +1,21 @@
+唯一项目根目录：
+C:\Users\jiang'yun'xin\Desktop\知识就是力量\融合版\ui尝试改进首页 - workbuddy跑\
+
+结构：
+├── 公途启动.bat          ← 双击，启动8888后端，打开浏览器
+├── 智学成语-高级版.html    ← 首页（成语+数学）
+├── mindmap.html           ← 万象图绎思维导图
+├── shenlun.html          ← 飞扬申论·文人书斋
+├── backend\
+│   ├── main.py           ← FastAPI主文件（8888端口）
+│   ├── shenlun.py       ← 申论AI批改路由
+│   ├── mindmap.py       ← 思维导图错题路由
+│   ├── data.db          ← 统一数据库
+│   └── src\
+│       └── grader.py    ← DeepSeek批改核心
+└── data\
+    └── images\          ← 思维导图图片
+
+只有一个后端：backend\main.py → 端口 8888
+只有一个前端：所有 .html 文件在根目录
+只有一份数据：backend\data.db

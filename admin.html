@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 — 公途学习平台</title>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: #f5f6fa;
+  color: #1e2330;
+  min-height: 100vh;
+  line-height: 1.55;
+}
+a { color: #4361ee; text-decoration: none; }
+button { font-family: inherit; }
+
+/* ── Login Overlay ── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.login-box {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px 40px;
+  width: 400px;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 25px 80px rgba(67,97,238,0.3), 0 10px 30px rgba(0,0,0,0.08);
+}
+.login-box .login-icon {
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  color: #fff;
+}
+.login-box h1 { font-size: 1.45rem; font-weight: 700; color: #1a1f36; margin-bottom: 4px; letter-spacing: 1px; }
+.login-box p { color: #7c8598; font-size: 0.88rem; margin-bottom:28px; }
+.login-box input {
+  width: 100%;
+  padding: 12px 16px;
+  background: #f2f4f9;
+  border: 2px solid transparent;
+  border-radius: 11px;
+  color: #1e2330;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+  margin-bottom: 14px;
+}
+.login-box input:focus { background: #fff; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.12); }
+.login-box input::placeholder { color: #b0b7c8; }
+.login-box button[type=submit] {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.96rem;
+  border: none;
+  border-radius: 11px;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.22s ease;
+  letter-spacing: 2px;
+}
+.login-box button[type=submit]:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(102,126,238,0.35); }
+.login-box button[type=submit]:active { transform: translateY(0); }
+.login-msg { margin-top: 14px; font-size: 0.84rem; border-radius: 10px; padding: 10px 14px; display: none; line-height: 1.4; }
+.login-msg.error { display: block; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.login-msg.success { display: block; background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+/* ── Admin Panel ── */
+.admin-panel { display: none; padding: 28px 32px 60px; max-width: 1200px; margin: 0 auto; }
+
+.admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 0 22px;
+  border-bottom: 2px solid #e8ecf3;
+  margin-bottom: 26px;
+}
+.admin-header h1 {
+  font-size: 1.35rem; font-weight: 700; color: #1a1f36; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 10px;
+}
+.admin-header h1::before { content: ''; width: 4px; height: 24px; background: linear-gradient(180deg,#667eea,#764ba2); border-radius: 2px; }
+.admin-header .admin-user { display: flex; align-items: center; gap: 14px; font-size: 0.87rem; color: #5a6275; }
+.admin-header .admin-user strong { color: #1a1f36; font-weight: 600; }
+.btn-logout {
+  padding: 7px 18px;
+  background: #fff; color: #dc2626; border: 1.5px solid #fecaca;
+  border-radius: 9px; cursor: pointer; font-size: 0.83rem; font-weight: 500;
+  transition: all 0.2s ease;
+}
+.btn-logout:hover { background: #fef2f2; border-color: #fca5a5; }
+
+/* ── Toolbar ── */
+.toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+.toolbar input[type=search] {
+  flex: 1; min-width:220px; max-width:420px;
+  padding: 11px 16px 11px 40px;
+  background: #fff;
+  border: 2px solid #e2e6ef;
+  border-radius: 11px;
+  color: #1e2330; font-size: 0.89rem; outline: none;
+  transition: all 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23b0b7c8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 13px center;
+}
+.toolbar input[type=search]:focus { border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.1); }
+.toolbar input[type=search]::placeholder { color: #b0b7c8; }
+.stats { font-size: 0.84rem; color: #7c8598; font-weight: 500; white-space: nowrap; }
+.stats b { color: #667eea; font-weight: 700; }
+
+/* ── User Table ── */
+.table-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.04);
+  overflow: hidden;
+  border: 1px solid #e8ecf3;
+}
+.user-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.user-table thead { background: #f8fafd; }
+.user-table th {
+  text-align: left; padding: 13px 16px; color: #6b7590; font-weight: 600;
+  font-size: 0.78rem; letter-spacing: 0.5px; text-transform: uppercase;
+  border-bottom: 1.5px solid #e8ecf3;
+}
+.user-table td { padding: 13px 16px; border-bottom: 1px solid #f0f2f7; vertical-align: middle; }
+.user-table tbody tr:last-child td { border-bottom: none; }
+.user-table tbody tr { transition: background 0.15s ease; }
+.user-table tbody tr:hover { background: #fafbff; }
+.username { font-weight: 650; color: #1a1f36; font-size: 0.92rem; }
+.badge-admin {
+  display: inline-block; padding: 2px 9px; background: linear-gradient(135deg,#667eea,#764ba2);
+  color: #fff; font-size: 0.71rem; font-weight: 600; border-radius: 6px; letter-spacing: 0.5px; margin-left: 6px;
+}
+.stat-num { color: #4361ee; font-weight: 600; }
+.stat-dim { color: #8b93a7; font-size: 0.81rem; }
+.btn-action {
+  padding: 6px 15px; background: #f2f5ff; color: #4361ee;
+  border: 1.5px solid #dce2ff; border-radius: 8px; cursor: pointer;
+  font-size: 0.79rem; font-weight: 500; transition: all 0.2s ease;
+}
+.btn-action:hover { background: #4361ee; color: #fff; border-color: #4361ee; transform: translateY(-1px); }
+.btn-danger {
+  padding: 6px 15px; background: #fef2f2; color: #dc2626;
+  border: 1.5px solid #fecaca; border-radius: 8px; cursor: pointer;
+  font-size: 0.79rem; font-weight: 500; transition: all 0.2s ease;
+}
+.btn-danger:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15,17,33,0.45);
+  backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 8000; padding: 20px;
+  animation: fadeIn 0.18s ease;
+}
+.modal-overlay.show { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: #fff; border-radius: 20px; width: 720px; max-width: 95vw;
+  max-height: 85vh; overflow-y: auto; padding: 32px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.12), 0 8px 25px rgba(0,0,0,0.06);
+  animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp { from { opacity:0; transform:translateY(16px) scale(0.98); } to { opacity:1; transform:none; } }
+.modal h2 { font-size: 1.15rem; font-weight: 700; color: #1a1f36; margin-bottom: 20px; display:flex; align-items:center; gap:10px; }
+.modal-close {
+  float: right; background: #f2f4f9; border: none; color: #6b7590;
+  font-size: 1.15rem; cursor: pointer; width: 32px; height: 32px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.modal-close:hover { background: #e8ebf2; color: #1a1f36; }
+.modal h3 { font-size: 0.92rem; font-weight: 650; color: #1a1f36; margin:22px 0 12px; padding-bottom: 8px; border-bottom: 2px solid #f0f2f7; display:flex; align-items:center; gap:8px; }
+.modal table { width:100%; border-collapse:collapse; font-size:0.86rem; margin-bottom:14px; }
+.modal table th { text-align:left; padding:10px 12px; color:#6b7590; font-weight:600; font-size:0.77rem; border-bottom:1px solid #eee; }
+.modal table td { padding:10px 12px; border-bottom:1px solid #f7f8fb; }
+.modal .btn-sm {
+  padding:5px 12px; background:#fef2f2; color:#dc2626; border:1px solid #fecaca;
+  border-radius:6px; cursor:pointer; font-size:0.76rem; font-weight:500; transition:all 0.2s;
+}
+.modal .btn-sm:hover { background:#dc2626; color:#fff; border-color:#dc2626; }
+.empty { color: #9aa0b5; font-size: 0.86rem; padding: 14px 0; }
+
+/* ── Confirm Dialog ── */
+.confirm-overlay {
+  position:fixed; inset:0; background:rgba(15,17,33,0.5); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; z-index:9000;
+}
+.confirm-overlay.show { display:flex; }
+.confirm-box {
+  background:#fff; border:2px solid #fecaca; border-radius:18px;
+  padding:30px 34px; width:430px; max-width:90vw; text-align:center;
+  box-shadow: 0 20px 60px rgba(220,38,38,0.15);
+}
+.confirm-box p { color:#374151; font-size:0.94rem; margin-bottom:22px; line-height:1.55; font-weight:500; }
+.confirm-box .btns { display:flex; gap:12px; justify-content:center; }
+.btn-cancel {
+  padding:10px 28px; background:#fff; color:#6b7590; border:1.5px solid #e2e6ef;
+  border-radius:10px; cursor:pointer; font-size:0.86rem; font-weight:550;
+  transition:all 0.2s;
+}
+.btn-cancel:hover { background:#f8fafd; border-color:#cdd3e3; }
+.btn-ok {
+  padding:10px 28px; background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff;
+  border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:0.86rem;
+  transition:all 0.2s;
+}
+.btn-ok:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(220,38,38,0.3); }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; top:24px; right:24px; padding:14px 22px; border-radius:12px;
+  font-size:0.87rem; font-weight:500; z-index:99999; display:none;
+  max-width:380px; box-shadow:0 8px 30px rgba(0,0,0,0.1); animation:toastIn 0.3s ease;
+}
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:none} }
+.toast.show { display:block; }
+.toast.success { background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; }
+.toast.error { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; }
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .admin-panel{padding:16px;}
+  .admin-header{flex-direction:column;align-items:flex-start;gap:12px;}
+  .toolbar{flex-direction:column;}
+  .toolbar input[type=search]{max-width:100%;min-width:auto;}
+  .user-table{font-size:0.82rem;}
+  .modal{width:96vw;padding:20px;margin:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Login Overlay ── -->
+<div class="login-overlay" id="loginOverlay">
+<div class="login-box">
+  <div class="login-icon">🔐</div>
+  <h1>管理后台</h1>
+  <p>请输入管理员账号密码</p>
+  <form id="loginForm" onsubmit="doAdminLogin(event)">
+    <input type="text" id="adminUser" placeholder="管理员用户名" autocomplete="username" required>
+    <input type="password" id="adminPass" placeholder="密码" autocomplete="current-password" required>
+    <button type="submit">登 录</button>
+  </form>
+  <div class="login-msg" id="loginMsg"></div>
+</div>
+</div>
+
+<!-- ── Admin Panel ── -->
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-header">
+    <h1>用户管理后台</h1>
+    <div class="admin-user">
+      管理员：<strong id="adminName">—</strong>
+      <button class="btn-logout" onclick="adminLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="searchInput" placeholder="搜索用户名..." oninput="renderUsers()">
+    <span class="stats" id="statsText"></span>
+  </div>
+
+  <div class="table-wrapper">
+  <table class="user-table" id="userTable">
+    <thead><tr>
+      <th>ID</th><th>用户名</th><th>注册时间</th><th>词库数</th><th>牌组状态</th><th>申论次数</th><th>操作</th>
+    </tr></thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
+  </div>
+</div>
+
+<!-- ── User Detail Modal ── -->
+<div class="modal-overlay" id="userModal">
+<div class="modal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <h2 id="modalTitle">用户详情</h2>
+  <div id="modalContent"></div>
+</div>
+</div>
+
+<!-- ── Confirm Dialog ── -->
+<div class="confirm-overlay" id="confirmOverlay">
+<div class="confirm-box">
+  <p id="confirmText">确认执行此操作？</p>
+  <div class="btns">
+    <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+    <button class="btn-ok" id="confirmOk">确认删除</button>
+  </div>
+</div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──
+const API = location.origin + '/api';
+let adminToken = localStorage.getItem('admin_token') || '';
+
+// ── Init ──
+(async function() {
+  if (adminToken) {
+    let ok = await verifyToken();
+    if (ok) showPanel();
+    else showLogin();
+  } else {
+    showLogin();
+  }
+})();
+
+// ── Auth ──
+async function verifyToken() {
+  try {
+    let resp = await fetch(API + '/auth/me', { headers: { 'Authorization': 'Bearer ' + adminToken } });
+    if (resp.ok) {
+      let data = await resp.json();
+      if (data.is_admin) {
+        document.getElementById('adminName').textContent = data.username;
+        return true;
+      }
+    }
+  } catch(e) {}
+  adminToken = '';
+  localStorage.removeItem('admin_token');
+  return false;
+}
+
+async function doAdminLogin(e) {
+  e.preventDefault();
+  let msg = document.getElementById('loginMsg');
+  msg.className = 'login-msg';
+  msg.style.display = 'none';
+  let user = document.getElementById('adminUser').value.trim();
+  let pass = document.getElementById('adminPass').value;
+  if (!user || !pass) { msg.textContent = '请填写用户名和密码'; msg.className = 'login-msg error'; msg.style.display = 'block'; return; }
+  try {
+    let resp = await fetch(API + '/auth/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass })
+    });
+    let data = await resp.json();
+    if (resp.ok && data.token) {
+      if (!data.is_admin) { msg.textContent = '该账号不是管理员'; msg.className = 'login-msg error'; msg.style.display = 'block'; return; }
+      adminToken = data.token;
+      localStorage.setItem('admin_token', adminToken);
+      document.getElementById('adminName').textContent = data.username;
+      showPanel();
+    } else {
+      msg.textContent = data.detail || '登录失败';
+      msg.className = 'login-msg error';
+      msg.style.display = 'block';
+    }
+  } catch(err) {
+    msg.textContent = '连接后端失败，请确认后端已启动';
+    msg.className = 'login-msg error';
+    msg.style.display = 'block';
+  }
+}
+
+function adminLogout() {
+  adminToken = '';
+  localStorage.removeItem('admin_token');
+  showLogin();
+}
+
+function showLogin() {
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('adminPanel').style.display = 'none';
+}
+function showPanel() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  loadUsers();
+}
+
+// ── API helper ──
+async function apiFetch(url, options = {}) {
+  let opts = Object.assign({}, options, { headers: Object.assign({}, (options && options.headers) || {}, { 'Authorization': 'Bearer ' + adminToken }) });
+  let resp = await fetch(url, opts);
+  if (resp.status === 401 || resp.status === 403) { adminLogout(); throw new Error('认证失败'); }
+  return resp;
+}
+
+// ── Load Users ──
+let allUsers = [];
+async function loadUsers() {
+  try {
+    let resp = await apiFetch(API + '/admin/users');
+    if (resp.ok) {
+      allUsers = await resp.json();
+      renderUsers();
+    }
+  } catch(e) { console.error(e); toast('加载用户列表失败', 'error'); }
+}
+
+function renderUsers() {
+  let keyword = (document.getElementById('searchInput').value || '').toLowerCase();
+  let filtered = keyword ? allUsers.filter(u => u.username.toLowerCase().includes(keyword)) : allUsers;
+  let tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = '';
+  filtered.forEach(u => {
+    let deckStr = Object.entries(u.decks || {}).map(([k,v]) => k + ':' + v).join(' / ') || '—';
+    let tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:#9aa0b5;font-size:0.82rem;">${u.id}</td>
+      <td><span class="username">${escHtml(u.username)}</span>${u.is_admin ? ' <span class="badge-admin">管理员</span>' : ''}</td>
+      <td style="color:#6b7590;font-size:0.83rem;">${(u.created_at||'').slice(0,10)}</td>
+      <td class="stat-num">${u.vocab_count || 0}</td>
+      <td style="color:#6b7590;font-size:0.82rem;">${deckStr}</td>
+      <td class="stat-num">${u.shenlun_count || 0}</td>
+      <td>
+        <button class="btn-action" onclick="viewUser(${u.id})">管理</button>
+        ${!u.is_admin ? `<button class="btn-danger" onclick="confirmDeleteUser(${u.id},'${escHtml(u.username)}')">删除</button>` : '<span style="color:#cdd3e3;font-size:0.78rem;">—</span>'}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('statsText').textContent = '共 <b>' + filtered.length + '</b> 个用户' + (keyword ? '（筛选自 ' + allUsers.length + ' 个）' : '');
+}
+
+// ── View User Detail ──
+let currentUserId = 0;
+async function viewUser(userId) {
+  currentUserId = userId;
+  let user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+  document.getElementById('modalTitle').textContent = '👤 ' + user.username + '（ID: ' + userId + '）';
+  let html = '';
+
+  // Vocab section
+  html += '<h3>📚 自定义词库</h3>';
+  try {
+    let resp = await apiFetch(API + '/admin/users/' + userId + '/vocab');
+    let vocab = await resp.json();
+    if (vocab.length > 0) {
+      html += '<table><thead><tr><th>词库名</th><th>词条数</th><th>操作</th></tr></thead><tbody>';
+      vocab.forEach(v => {
+        html += `<tr><td style="color:#1a1f36;font-weight:500;">${escHtml(v.source_name)}</td><td class="stat-num">${v.word_count}</td>`
+              + `<td><button class="btn-sm" onclick="confirmDeleteVocab(${userId},'${escJs(v.source_name)}')">删除</button></td></tr>`;
+      });
+      html += '</tbody></table>';
+    } else {
+      html += '<div class="empty">暂无自定义词库</div>';
+    }
+  } catch(e) { html += '<div class="empty" style="color:#dc2626;">加载失败</div>'; }
+
+  // Decks section
+  html += '<h3>🃏 牌组状态</h3>';
+  try {
+    let resp = await apiFetch(API + '/admin/users/' + userId + '/decks');
+    let decks = await resp.json();
+    if (decks.length > 0) {
+      html += '<table><thead><tr><th>牌组类型</th><th>卡片数</th><th>更新时间</th><th>操作</th></tr></thead><tbody>';
+      decks.forEach(d => {
+        html += `<tr><td style="color:#1a1f36;font-weight:500;">${escHtml(d.deck_type)}</td><td class="stat-num">${d.card_count}</td>`
+              + `<td style="color:#9aa0b5;font-size:0.79rem;">${(d.updated_at||'').slice(0,16)}</td>`
+              + `<td><button class="btn-sm" onclick="confirmDeleteDecks(${userId},'${escJs(d.deck_type)}')">清空</button></td></tr>`;
+      });
+      html += '</tbody></table>';
+      html += `<button class="btn-danger" style="margin-top:10px;" onclick="confirmDeleteDecks(${userId},'')">清空全部牌组</button>`;
+    } else {
+      html += '<div class="empty">暂无牌组数据</div>';
+    }
+  } catch(e) { html += '<div class="empty" style="color:#dc2626;">加载失败</div>'; }
+
+  // Shenlun section
+  html += '<h3>✍️ 申论批改历史</h3>';
+  try {
+    let resp = await apiFetch(API + '/admin/users/' + userId + '/shenlun');
+    let list = await resp.json();
+    if (list.length > 0) {
+      html += '<table><thead><tr><th>题目</th><th>类型</th><th>字数</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+      list.slice(0, 20).forEach(s => {
+        html += `<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1a1f36;" title="${escHtml(s.question_title||'')}">${escHtml((s.question_title||'').slice(0,18))}</td>`
+              + `<td style="color:#4361ee;font-weight:500;">${escHtml(s.question_type||'')}</td>`
+              + `<td class="stat-num">${s.word_count||0}</td>`
+              + `<td style="color:#9aa0b5;font-size:0.79rem;">${(s.created_at||'').slice(0,16)}</td>`
+              + `<td><button class="btn-sm" onclick="confirmDeleteShenlun(${userId})">清空全部</button></td></tr>`;
+      });
+      html += '</tbody></table>';
+      if (list.length > 20) html += '<div class="empty">仅显示最近 20 条</div>';
+      html += `<button class="btn-danger" style="margin-top:10px;" onclick="confirmDeleteShenlun(${userId})">清空全部申论历史</button>`;
+    } else {
+      html += '<div class="empty">暂无申论批改记录</div>';
+    }
+  } catch(e) { html += '<div class="empty" style="color:#dc2626;">加载失败</div>'; }
+
+  // Danger zone
+  if (!user.is_admin) {
+    html += '<h3 style="color:#dc2626;">⚠️ 危险操作</h3>';
+    html += `<button class="btn-danger" onclick="confirmDeleteUser(${userId},'${escJs(user.username)}')">删除该用户（含全部数据）</button>`;
+  }
+
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('userModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('userModal').classList.remove('show'); }
+
+// ── Delete actions ──
+function confirmDeleteVocab(userId, sourceName) {
+  openConfirm(`确定删除用户 ID=${userId} 的词库「${sourceName}」？`, () => {
+    apiFetch(API + '/admin/users/' + userId + '/vocab?source=' + encodeURIComponent(sourceName), { method: 'DELETE' })
+      .then(r => r.json()).then(d => { toast(d.msg||'删除成功'); closeModal(); loadUsers(); })
+      .catch(e => toast('删除失败','error'));
+  });
+}
+
+function confirmDeleteDecks(userId, deckType) {
+  let label = deckType || '全部';
+  openConfirm(`确定清空用户 ID=${userId} 的 ${label} 牌组？`, () => {
+    let url = API + '/admin/users/' + userId + '/decks' + (deckType ? '?deck=' + deckType : '');
+    apiFetch(url, { method: 'DELETE' })
+      .then(r => r.json()).then(d => { toast(d.msg||'清空成功'); viewUser(userId); loadUsers(); })
+      .catch(e => toast('操作失败','error'));
+  });
+}
+
+function confirmDeleteShenlun(userId) {
+  openConfirm(`确定清空用户 ID=${userId} 的全部申论批改历史？`, () => {
+    apiFetch(API + '/admin/users/' + userId + '/shenlun', { method: 'DELETE' })
+      .then(r => r.json()).then(d => { toast(d.msg||'清空成功'); viewUser(userId); loadUsers(); })
+      .catch(e => toast('操作失败','error'));
+  });
+}
+
+function confirmDeleteUser(userId, username) {
+  openConfirm(`⚠️ 彻底删除用户「${username}」（ID=${userId}）及其全部数据？此操作不可恢复！`, () => {
+    apiFetch(API + '/admin/users/' + userId, { method: 'DELETE' })
+      .then(r => r.json()).then(d => { toast(d.msg||'删除成功'); closeModal(); loadUsers(); })
+      .catch(e => toast('删除失败','error'));
+  });
+}
+
+// ── Confirm dialog ──
+let confirmCallback = null;
+function openConfirm(text, callback) {
+  document.getElementById('confirmText').textContent = text;
+  document.getElementById('confirmOverlay').classList.add('show');
+  confirmCallback = callback;
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('show');
+  confirmCallback = null;
+}
+document.getElementById('confirmOk').onclick = () => { if (confirmCallback) confirmCallback(); closeConfirm(); };
+
+// ── Toast ──
+function toast(msg, type) {
+  let el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + (type||'success');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Utils ──
+function escHtml(s) { let d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function escJs(s) { return (s||'').replace(/'/g,'\\\''); }
+</script>
+</body>
+</html>

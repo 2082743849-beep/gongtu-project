@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公途·上岸 — 项目介绍</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(160deg, #faf7f2 0%, #f0ebe0 40%, #e8dfd0 100%);
+  color: #1a1a2e;
+  min-height: 100vh;
+  line-height: 1.7;
+}
+.hero {
+  text-align: center;
+  padding: 72px 24px 48px;
+  background: linear-gradient(180deg, rgba(21,29,40,0.04) 0%, transparent 100%);
+}
+.hero .seal {
+  width: 72px; height: 72px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, #c9a96e, #e8d5a3);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.8rem; font-weight: 900;
+  color: #111922;
+  box-shadow: 0 8px 30px rgba(201,169,110,0.25);
+}
+.hero h1 { font-family: 'Noto Serif SC', serif; font-size: 2.4rem; font-weight: 700; color: #151d28; letter-spacing: 2px; }
+.hero .subtitle { font-size: 1rem; color: #7a6540; margin-top: 8px; letter-spacing: 3px; }
+.hero .tagline { font-size: 0.9rem; color: #8891a5; margin-top: 12px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+.container { max-width: 800px; margin: 0 auto; padding: 0 24px 64px; }
+
+.section { margin-bottom: 40px; }
+.section h2 {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 1.25rem;
+  color: #c9a96e;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(201,169,110,0.2);
+  letter-spacing: 1px;
+}
+
+.modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.module-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.module-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
+.module-card .icon { font-size: 1.6rem; margin-bottom: 8px; }
+.module-card h3 { font-size: 0.95rem; font-weight: 600; color: #151d28; margin-bottom: 4px; }
+.module-card p { font-size: 0.82rem; color: #8891a5; }
+
+.tech-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+.tech-tag {
+  background: rgba(201,169,110,0.1);
+  color: #7a6540;
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(201,169,110,0.2);
+}
+
+.quickstart {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+}
+.quickstart ol { padding-left: 20px; color: #4a4a6a; font-size: 0.88rem; }
+.quickstart li { margin-bottom: 6px; }
+.quickstart code {
+  background: #f5f0e8;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  color: #c44b3a;
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="seal">公</div>
+  <h1>公途 · 上岸</h1>
+  <div class="subtitle">考公备考智学平台</div>
+  <div class="tagline">集成成语记忆、数量关系、思维导图与申论 AI 批改的一站式桌面学习工具</div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2>学习模块</h2>
+    <div class="modules">
+      <div class="module-card">
+        <div class="icon">🀄</div>
+        <h3>成语学习</h3>
+        <p>间隔重复牌组系统，支持自定义词库导入，每日智能排队推送</p>
+      </div>
+      <div class="module-card">
+        <div class="icon">📐</div>
+        <h3>数量关系</h3>
+        <p>数学题库练习，速算技巧、整除特性、数列运算全覆盖</p>
+      </div>
+      <div class="module-card">
+        <div class="icon">🧠</div>
+        <h3>思维导图</h3>
+        <p>图推错题收集与节点式复习，支持图片上传与间隔复习</p>
+      </div>
+      <div class="module-card">
+        <div class="icon">✍️</div>
+        <h3>申论 AI 批改</h3>
+        <p>DeepSeek 大模型 5 维度诊断评分，飞扬老师角色对话辅导</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>技术架构</h2>
+    <div class="tech-stack">
+      <span class="tech-tag">Python FastAPI</span>
+      <span class="tech-tag">SQLite</span>
+      <span class="tech-tag">JWT 认证</span>
+      <span class="tech-tag">原生 HTML/CSS/JS</span>
+      <span class="tech-tag">DeepSeek API</span>
+      <span class="tech-tag">间隔重复算法</span>
+      <span class="tech-tag">管理后台</span>
+      <span class="tech-tag">本地桌面运行</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>快速启动</h2>
+    <div class="quickstart">
+      <ol>
+        <li>在 <code>backend/.env</code> 中配置 DeepSeek API Key</li>
+        <li>双击 <code>公途启动.bat</code> 启动后端与浏览器</li>
+        <li>访问 <code>http://127.0.0.1:8888</code> 开始学习</li>
+        <li>管理员通过 <code>/admin</code> 管理用户与数据</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
