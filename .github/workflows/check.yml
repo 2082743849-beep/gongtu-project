@@ -1,0 +1,24 @@
+name: 代码检查
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 安装 Ruff
+        run: pip install ruff
+
+      - name: 静态检查
+        run: ruff check backend/ --select=E,F --ignore=E501
