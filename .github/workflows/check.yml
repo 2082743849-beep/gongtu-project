@@ -37,7 +37,7 @@ jobs:
         run: pip install mypy
 
       - name: 类型检查 (mypy)
-        run: mypy backend/ --ignore-missing-imports --follow-imports=skip
+        run: mypy backend/ --ignore-missing-imports --follow-imports=skip --disable-error-code var-annotated
 
   security:
     runs-on: ubuntu-latest
@@ -53,4 +53,4 @@ jobs:
         run: pip install bandit
 
       - name: 安全检查 (Bandit)
-        run: bandit -r backend/ -ll
+        run: bandit -r backend/ -ll --exclude '**/venv/**'

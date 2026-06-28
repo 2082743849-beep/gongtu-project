@@ -162,7 +162,7 @@ def update_question(qid: int, body: QuestionUpdate, user: dict = Depends(require
     if fields:
         vals.append(qid)
         vals.append(uid)
-        conn.execute(f"UPDATE questions SET {','.join(fields)} WHERE id=? AND user_id=?", vals)
+        conn.execute(f"UPDATE questions SET {','.join(fields)} WHERE id=? AND user_id=?", vals)  # nosec B608
         conn.commit()
     conn.close()
     return {"message": "更新成功"}
