@@ -13,7 +13,7 @@ let backendProcess = null;
 
 // ── 启动 Python 后端 ──
 function startBackend() {
-  const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+  const pythonCmd = '/Users/xixi/Workbuddy/2026-06-28-19-13-40/venv/bin/python';
 
   backendProcess = spawn(pythonCmd, ['-m', 'uvicorn', 'main:app', '--host', '127.0.0.1', '--port', String(PORT)], {
     cwd: BACKEND_DIR,
