@@ -84,6 +84,81 @@ rimLight.name = "RimLight";
 rimLight.position.set(-6, 3, -4);
 scene.add(rimLight);
 
+const helpers = new THREE.Group();
+helpers.name = "CoordinateHelpers";
+
+const grid = new THREE.GridHelper(12, 24, 0x9f8b6c, 0xd6cbbb);
+grid.name = "GroundGrid";
+grid.position.y = -1.5;
+grid.material.transparent = true;
+grid.material.opacity = 0.48;
+helpers.add(grid);
+
+const axes = new THREE.AxesHelper(2.25);
+axes.name = "WorldAxes";
+axes.position.y = -1.48;
+helpers.add(axes);
+
+const originGeometry = new THREE.RingGeometry(0.08, 0.13, 32);
+const originMaterial = new THREE.MeshBasicMaterial({
+  color: 0x5f5040,
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.8,
+});
+const originMarker = new THREE.Mesh(originGeometry, originMaterial);
+originMarker.name = "OriginMarker";
+originMarker.position.y = -1.47;
+originMarker.rotation.x = -Math.PI / 2;
+helpers.add(originMarker);
+
+function createAxisLabel(text, color) {
+  const labelCanvas = document.createElement("canvas");
+  labelCanvas.width = 128;
+  labelCanvas.height = 128;
+  const context = labelCanvas.getContext("2d");
+
+  context.clearRect(0, 0, 128, 128);
+  context.fillStyle = "rgba(255, 253, 248, 0.94)";
+  context.beginPath();
+  context.arc(64, 64, 42, 0, Math.PI * 2);
+  context.fill();
+  context.strokeStyle = color;
+  context.lineWidth = 7;
+  context.stroke();
+  context.fillStyle = color;
+  context.font = "700 58px system-ui";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(text, 64, 62);
+
+  const texture = new THREE.CanvasTexture(labelCanvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthTest: false,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.name = `${text}AxisLabel`;
+  sprite.scale.setScalar(0.42);
+  return sprite;
+}
+
+const xLabel = createAxisLabel("X", "#c65345");
+xLabel.position.set(2.45, -1.48, 0);
+helpers.add(xLabel);
+
+const yLabel = createAxisLabel("Y", "#3e8b67");
+yLabel.position.set(0, 1.02, 0);
+helpers.add(yLabel);
+
+const zLabel = createAxisLabel("Z", "#3975ad");
+zLabel.position.set(0, -1.48, 2.45);
+helpers.add(zLabel);
+
+scene.add(helpers);
+
 function resizeRenderer() {
   const { width, height } = viewport.getBoundingClientRect();
   const safeWidth = Math.max(1, Math.round(width));
@@ -139,6 +214,7 @@ canvas.dataset.lightCount = "3";
 canvas.dataset.clipping = String(renderer.localClippingEnabled);
 canvas.dataset.orbitControls = "true";
 canvas.dataset.zoomRange = `${controls.minDistance},${controls.maxDistance}`;
+canvas.dataset.coordinateHelpers = "grid,axes,origin,x-label,y-label,z-label";
 
 const geometryLab = Object.freeze({
   THREE,
@@ -146,6 +222,7 @@ const geometryLab = Object.freeze({
   camera,
   renderer,
   controls,
+  helpers,
   lights: Object.freeze({
     hemisphere: hemisphereLight,
     key: keyLight,
@@ -162,6 +239,18 @@ window.addEventListener(
     resetViewButton?.removeEventListener("click", resetView);
     controls.removeEventListener("change", updateCameraState);
     controls.dispose();
+    originGeometry.dispose();
+    originMaterial.dispose();
+    for (const child of helpers.children) {
+      if (child instanceof THREE.Sprite) {
+        child.material.map?.dispose();
+        child.material.dispose();
+      }
+    }
+    grid.geometry.dispose();
+    grid.material.dispose();
+    axes.geometry.dispose();
+    axes.material.dispose();
     resizeObserver.disconnect();
     renderer.setAnimationLoop(null);
     renderer.dispose();

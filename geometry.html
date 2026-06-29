@@ -265,6 +265,10 @@
       pointer-events: none;
     }
 
+    .empty-stage[hidden] {
+      display: none;
+    }
+
     .wire-cube {
       width: 112px;
       height: 112px;
@@ -372,6 +376,27 @@
       margin-top: 4px;
       font-size: 14px;
     }
+
+    .axis-legend {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      z-index: 2;
+      display: flex;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      background: rgba(255, 253, 248, 0.86);
+      box-shadow: 0 8px 24px rgba(63, 47, 28, 0.08);
+      backdrop-filter: blur(10px);
+      font: 700 11px/1 ui-monospace, monospace;
+    }
+
+    .axis-x { color: #c65345; }
+    .axis-y { color: #3e8b67; }
+    .axis-z { color: #3975ad; }
 
     .view-strip {
       padding: 12px;
@@ -639,6 +664,11 @@
         <div class="live-section-card" aria-label="实时截面状态">
           <span>LIVE SECTION</span>
           <strong>截面将在模型内部实时高亮</strong>
+        </div>
+        <div class="axis-legend" aria-label="坐标轴颜色">
+          <span class="axis-x">X 红</span>
+          <span class="axis-y">Y 绿</span>
+          <span class="axis-z">Z 蓝</span>
         </div>
       </div>
 
