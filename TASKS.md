@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M1 接力成果回审修复 |
-| 已完成 | 21 项（含待校正文档记录） |
+| 已完成 | 22 项（含待校正文档记录） |
 | 进行中 | 0 项 |
-| 下一项 | REVIEW-M1-002 建立可复现生成器测试 |
+| 下一项 | REVIEW-M1-003 校正 M1 看板日志与交接文档 |
 | 功能分支 | `feature/spatial-geometry-agent2` |
 
 ## 里程碑
@@ -145,8 +145,12 @@
   - 验收：首次打开立即出现默认正方体；模型底面与 `y=-1.5` 网格对齐；Canvas 暴露模型类型与包围盒
   - 结果：已修复错过 `geometry:scene-ready` 的初始化竞态，并统一七类模型的场景落位
   - 提交：本任务所在提交
-- [ ] ○ REVIEW-M1-002 test: 建立可复现生成器测试
+- [x] ● REVIEW-M1-002 test: 建立可复现生成器测试
+  - 交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：测试源码进入 Git；从干净安装可运行；报告真实用例数并覆盖七类模型
+  - 结果：122/122 通过；覆盖七类正常结构、84 个尺寸非法输入、24 个分段非法输入、有限坐标及 7 个外观测试
+  - 提交：本任务所在提交
 - [ ] ○ REVIEW-M1-003 docs: 校正 M1 看板日志与交接文档
   - 验收：TASKS、CURRENT_STATUS、工作日志、进度板与交接文档状态和提交一致
 
