@@ -8,7 +8,7 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M1 可操作的基础 3D 实验室 |
-| 已完成 | 9 项 |
+| 已完成 | 10 项 |
 | 进行中 | 0 项 |
 | 下一项 | LAB-003 建立 Three.js 场景相机与灯光 |
 | 功能分支 | `feature/spatial-geometry-lab` |
@@ -61,6 +61,12 @@
   - 文件：`.github/workflows/check.yml`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：CI 能检查空间几何 JavaScript 语法
   - 结果：CI 已使用 Node.js 22 可复现安装依赖，并检查现有入口及未来 `geometry/` 下全部 JavaScript
+  - 提交：本任务所在提交
+- [x] ● GOV-005A docs: 校正任务文件计数口径
+  - 交付文件：`.ai_rules.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：每项最多三个交付文件；两个强制审计文件每次更新但不占交付名额
+  - 结果：避免为了满足机械文件数而把独立模块塞入单文件，同时保留完整看板审计
   - 提交：本任务所在提交
 
 ## M1：可操作的基础 3D 实验室
