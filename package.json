@@ -1,0 +1,19 @@
+{
+  "name": "gongtu-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "公途 Web 前端与空间几何实验室依赖",
+  "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "deps:check": "npm ls --all"
+  },
+  "dependencies": {
+    "three": "0.185.0",
+    "three-bvh-csg": "0.0.18",
+    "three-mesh-bvh": "0.9.10"
+  }
+}

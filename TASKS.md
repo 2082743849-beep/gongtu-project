@@ -8,9 +8,9 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M0 工程治理与现状保护 |
-| 已完成 | 4 项 |
+| 已完成 | 5 项 |
 | 进行中 | 0 项 |
-| 下一项 | GOV-004 建立空间几何依赖锁定方案 |
+| 下一项 | GOV-004A 生成可复现依赖锁文件 |
 | 功能分支 | `feature/spatial-geometry-lab` |
 
 ## 里程碑
@@ -47,9 +47,14 @@
   - 验收：完成项显示结果和提交证据；用户回复直接展示看板片段
   - 结果：已补齐前三项任务证据，并将展示要求写入 AI 协作章程
   - 提交：本任务所在提交
-- [ ] ○ GOV-004 chore: 建立空间几何依赖锁定方案
+- [x] ● GOV-004 chore: 建立空间几何依赖锁定方案
   - 文件：`package.json`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：Three.js 与几何依赖版本固定；安装命令成功
+  - 结果：精确锁定 Three.js、three-mesh-bvh 和 three-bvh-csg，隔离目录安装与依赖树检查通过
+  - 提交：本任务所在提交
+- [ ] ○ GOV-004A chore: 生成可复现依赖锁文件
+  - 文件：`package-lock.json`、`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：锁文件可完成 `npm ci`；仓库不提交 `node_modules`
 - [ ] ○ GOV-005 ci: 建立前端 JavaScript 基础检查
   - 文件：`.github/workflows/check.yml`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：CI 能检查空间几何 JavaScript 语法
