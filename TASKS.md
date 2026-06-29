@@ -7,17 +7,17 @@
 
 | 项目 | 当前结果 |
 |---|---|
-| 当前阶段 | M0 工程治理与现状保护 |
-| 已完成 | 6 项 |
+| 当前阶段 | M0 已完成，下一阶段 M1 |
+| 已完成 | 7 项 |
 | 进行中 | 0 项 |
-| 下一项 | GOV-005 建立前端 JavaScript 基础检查 |
+| 下一项 | LAB-001 建立空间几何实验室页面骨架 |
 | 功能分支 | `feature/spatial-geometry-lab` |
 
 ## 里程碑
 
 | 阶段 | 目标 | 状态 |
 |---|---|---|
-| M0 | 工程治理与现状保护 | ◐ 进行中 |
+| M0 | 工程治理与现状保护 | ● 已完成 |
 | M1 | 可操作的基础 3D 实验室 | ○ 待开始 |
 | M2 | 无限切平面与精确截面 | ○ 待开始 |
 | M3 | 组合模型与空间视图题 | ○ 待开始 |
@@ -57,9 +57,11 @@
   - 验收：锁文件可完成 `npm ci`；仓库不提交 `node_modules`
   - 结果：已生成 npm lockfileVersion 3 锁文件，隔离目录 `npm ci` 和依赖树检查通过
   - 提交：本任务所在提交
-- [ ] ○ GOV-005 ci: 建立前端 JavaScript 基础检查
+- [x] ● GOV-005 ci: 建立前端 JavaScript 基础检查
   - 文件：`.github/workflows/check.yml`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：CI 能检查空间几何 JavaScript 语法
+  - 结果：CI 已使用 Node.js 22 可复现安装依赖，并检查现有入口及未来 `geometry/` 下全部 JavaScript
+  - 提交：本任务所在提交
 
 ## M1：可操作的基础 3D 实验室
 

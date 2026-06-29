@@ -2,44 +2,46 @@
 
 更新时间：2026-06-29
 当前分支：`feature/spatial-geometry-lab`
-当前里程碑：M0 工程治理与现状保护
+当前里程碑：M0 工程治理与现状保护（已完成）
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：GOV-004A
-- 任务：`chore: 生成可复现依赖锁文件`
+- 编号：GOV-005
+- 任务：`ci: 建立前端 JavaScript 基础检查`
 
 ## 刚刚完成了什么
 
-1. 根据已锁定的三个空间几何依赖生成 npm v3 锁文件。
-2. 将直接依赖、传递依赖、完整性哈希和 peer dependency 关系固定下来。
-3. 使用隔离目录验证锁文件能够从零安装，不污染仓库工作区。
+1. 在 GitHub Actions 中新增独立 `frontend-check` 作业。
+2. 使用 Node.js 22 和 `npm ci` 按锁文件安装前端依赖。
+3. 自动检查现有 `_verify.js`、`desktop/main.js` 以及未来 `geometry/` 下全部 JavaScript。
+4. 自动执行 `npm run deps:check`，检查依赖树完整性。
 
 ## 本任务修改文件
 
-- `package-lock.json`
+- `.github/workflows/check.yml`
 - `TASKS.md`
 - `CURRENT_STATUS.md`
 
 ## 验收记录
 
-- 已通过：在隔离临时目录使用 `npm ci --ignore-scripts` 从零安装 3 个包。
-- 已通过：`npm run deps:check` 显示三个直接依赖及 peer dependency 完整。
-- 已通过：锁文件为 lockfileVersion 3，三个包均包含完整性哈希。
-- 已通过：仓库没有生成或暂存 `node_modules`，本任务只有三个指定文件。
+- 已通过：Ruby YAML 解析器成功读取工作流并找到 `frontend-check` 作业。
+- 已通过：隔离目录按 CI 参数完成 `npm ci` 和依赖树检查。
+- 已通过：`node --check` 检查 `_verify.js` 和 `desktop/main.js` 无语法错误。
+- 已通过：工作流包含未来 `geometry/` JavaScript 自动发现逻辑。
+- 已通过：`git diff --check` 无错误，本任务只有三个指定文件。
 - 提交与推送将在本文件验收完成后立即执行。
 
 ## 下一步
 
-执行 GOV-005：`ci: 建立前端 JavaScript 基础检查`。
+执行 LAB-001：`feat: 建立空间几何实验室页面骨架`。
 
 ## 已知风险与保护措施
 
-- 锁文件保证安装内容可复现，但依赖升级仍必须单独建任务并重新运行几何回归测试。
-- 安装使用 `--ignore-scripts`，降低第三方安装脚本风险。
+- 当前项目尚无 `geometry/` JavaScript；CI 已预置自动发现，LAB 阶段新增脚本后会立即纳入检查。
+- 语法检查不等于浏览器行为测试，后续仍需增加单元测试和端到端测试。
 
 ## 提交与远端
 
-- 提交：本文件所在提交，信息为 `chore: 生成可复现依赖锁文件`
+- 提交：本文件所在提交，信息为 `ci: 建立前端 JavaScript 基础检查`
 - 推送：提交后立即推送至 `origin/feature/spatial-geometry-lab`
