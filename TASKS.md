@@ -111,7 +111,12 @@
   - 验收：场景显示地面网格、XYZ 坐标轴、原点、方向标签及可读颜色图例
   - 结果：已建立可释放的坐标辅助组，并通过 Canvas 状态暴露六类辅助元素
   - 提交：本任务所在提交
-- [ ] ◐ LAB-006 feat: 建立长方体与正方体生成器
+- [x] ● LAB-006 feat: 建立长方体与正方体生成器
+  - 交付文件：`geometry/box-generator.js`、`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：`createBox(width, height, depth)` 和 `createCube(size)` 返回 Three.js Group；含实体网格 + 棱线；支持颜色/透明度外观配置；参数非法时安全降级为最小值；正方体/长方体按钮与尺寸/透明度滑块联动；语法检查通过；git diff 无冲突
+  - 结果：已建立参数化生成器，页面首次加载自动创建默认正方体，切换按钮/拖动滑块实时重建模型
+  - 提交：`54a7e9f`
 - [ ] ○ LAB-007 feat: 建立三棱柱生成器
 - [ ] ○ LAB-008 feat: 建立三棱锥生成器
 - [ ] ○ LAB-009 feat: 建立圆柱生成器
