@@ -23,7 +23,7 @@
 - [x] ● GOV-002 docs: 同步项目开发规范的规则优先级
   - 文件：`doc/PROJECT_RULES.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：旧规则引用 `.ai_rules.md`；冲突优先级清晰
-- [ ] ○ GOV-003 docs: 编写空间几何模块架构决策
+- [x] ● GOV-003 docs: 编写空间几何模块架构决策
   - 文件：`doc/GEOMETRY_ARCHITECTURE.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：包含模块边界、数据流、风险与阶段验收标准
 - [ ] ○ GOV-004 chore: 建立空间几何依赖锁定方案
