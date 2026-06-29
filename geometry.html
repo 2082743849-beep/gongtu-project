@@ -626,10 +626,10 @@
           <span>圆柱</span><span class="model-icon">⬤</span>
         </button>
         <button class="model-button" type="button" aria-pressed="false">
-          <span>圆锥</span><span class="model-icon">▽</span>
+          <span>圆锥</span><span class="model-icon">▲</span>
         </button>
         <button class="model-button" type="button" aria-pressed="false">
-          <span>球体</span><span class="model-icon">◯</span>
+          <span>球体</span><span class="model-icon">●</span>
         </button>
       </nav>
     </aside>
@@ -744,6 +744,8 @@
     import { createTriangularPrism } from "/geometry/prism-generator.js";
     import { createTriangularPyramid } from "/geometry/pyramid-generator.js";
     import { createCylinder } from "/geometry/cylinder-generator.js";
+    import { createCone } from "/geometry/cone-generator.js";
+    import { createSphere } from "/geometry/sphere-generator.js";
 
     const modelButtons = document.querySelectorAll(".model-button");
     const sizeSlider = document.querySelector('.field input[aria-label="模型尺寸"]');
@@ -794,6 +796,12 @@
       if (currentType === "cylinder") {
         return createCylinder(currentSize / 2, currentSize / 2, currentSize, 32, appearance);
       }
+      if (currentType === "cone") {
+        return createCone(currentSize / 2, currentSize, 32, appearance);
+      }
+      if (currentType === "sphere") {
+        return createSphere(currentSize / 2, 32, 16, appearance);
+      }
       return createBox(currentSize, currentSize * 1.5, currentSize * 0.8, appearance);
     }
 
@@ -833,6 +841,10 @@
           currentType = "triangularPyramid";
         } else if (label === "圆柱") {
           currentType = "cylinder";
+        } else if (label === "圆锥") {
+          currentType = "cone";
+        } else if (label === "球体") {
+          currentType = "sphere";
         } else {
           return;
         }
@@ -843,7 +855,7 @@
     sizeSlider?.addEventListener("input", () => {
       currentSize = parseFloat(sizeSlider.value) || 1;
       updateSizeDisplay();
-      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder") {
+      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder" || currentType === "cone" || currentType === "sphere") {
         placeModel();
       }
     });
@@ -851,7 +863,7 @@
     opacitySlider?.addEventListener("input", () => {
       currentOpacity = parseInt(opacitySlider.value, 10) / 100;
       updateOpacityDisplay();
-      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder") {
+      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder" || currentType === "cone" || currentType === "sphere") {
         placeModel();
       }
     });
