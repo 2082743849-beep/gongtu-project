@@ -127,7 +127,7 @@
   - 文件：`geometry/cylinder-generator.js`、`geometry.html`
   - 验收：createCylinder(radiusTop, radiusBottom, height, radialSegments, appearance) 默认值 1/1/2/32；语法检查通过；按钮与滑块联动
   - 结果：已建立参数化圆柱生成器，Group 含实体+棱线，安全降级
-  - 提交：待提交
+  - 提交：`4f2f18b`
 - [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
 - [ ] ○ LAB-011 feat: 建立基础模型参数控制面板
 - [ ] ○ LAB-012 test: 验证基础模型参数和退化输入
