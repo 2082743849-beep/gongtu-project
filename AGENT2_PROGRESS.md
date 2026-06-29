@@ -22,7 +22,9 @@
   - 提交：`b5d770d`
   - 验收：createTriangularPyramid 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
 
-- [ ] ○ LAB-009 feat: 建立圆柱生成器
+- [x] ● LAB-009 feat: 建立圆柱生成器
+  - 提交：待提交
+  - 验收：createCylinder 五参数签名，默认值 1/1/2/32；语法检查通过；按钮与滑块联动
 
 - [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
 

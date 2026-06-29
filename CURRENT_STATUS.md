@@ -7,18 +7,18 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：LAB-008
-- 任务：`feat: 建立三棱锥生成器`
+- 编号：LAB-009
+- 任务：`feat: 建立圆柱生成器`
 
 ## 本任务完成情况
 
-1. 创建 `geometry/pyramid-generator.js`：提供 `createTriangularPyramid(baseSize, height, appearance)` 函数，基于 ConeGeometry(radialSegments=3) 生成正三棱锥。
-2. 修改 `geometry.html`：导入模块、添加三棱锥按钮和 buildModel/事件处理。
-3. 交付文件：`geometry/pyramid-generator.js`、`geometry.html`（共 2 个）。
+1. 创建 `geometry/cylinder-generator.js`：`createCylinder(radiusTop, radiusBottom, height, radialSegments, appearance)`，默认等径圆柱 radiusTop=radiusBottom=1、height=2、radialSegments=32，参数非法安全降级。
+2. 修改 `geometry.html`：导入模块、图标 ⬤、buildModel 调用和滑块联动。
+3. 交付文件：`geometry/cylinder-generator.js`、`geometry.html`（共 2 个）。
 
 ## 下一步
 
-完成后执行 LAB-009。
+完成后执行 LAB-010。
 
 ## 提交与远端
 
