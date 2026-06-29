@@ -1,50 +1,36 @@
 # 当前开发状态
 
 更新时间：2026-06-29
-当前分支：`feature/spatial-geometry-lab`
+当前分支：`feature/spatial-geometry-agent2`
 当前里程碑：M1 可操作的基础 3D 实验室
 
 ## 当前任务
 
-- 状态：● 已完成
-- 编号：GOV-005C
-- 任务：`docs: 建立接力 Agent 隔离与回审机制`
+- 状态：◐ 进行中
+- 编号：LAB-006
+- 任务：`feat: 建立长方体与正方体生成器`
 
 ## 刚刚完成了什么
 
-1. 规定 Agent 1 基准、只读备份和 Agent 2 接力三个远端分支的职责。
-2. 为 Agent 2 指定独立工作树，禁止复用或切换 Agent 1 的工作树。
-3. 建立只追加的 `AGENT_WORK_LOG.md`，要求 Agent 2 每项记录工作、测试、提交和风险。
-4. 禁止 Agent 2 自行合并、变基、强推或删除基准与备份分支。
-5. 建立 Agent 1 返回后的日志核对、逐提交审查、完整测试和先审后合流程。
+（任务执行中，详见下方计划）
 
-## 本任务修改文件
+## 本任务计划
 
-- `.ai_rules.md`
-- `doc/AGENT_HANDOFF.md`
-- `doc/AGENT_WORK_LOG.md`
-- `TASKS.md`
-- `CURRENT_STATUS.md`
-
-## 验收记录
-
-- 已通过：基准、备份、Agent 2 接力三个分支职责及独立工作树定义完整。
-- 已通过：工作日志模板包含任务、交付文件、测试、提交、推送、风险和下一项。
-- 已通过：Agent 1 回审包含日志核对、分支差异、逐提交审查、全量测试和先审后合。
-- 已通过：三个分支名在交接手册中一致，Agent 2 合并/变基/强推均被禁止。
-- 已通过：`git diff --check` 无错误，本任务三个交付文件，看板已完成数量为 15。
-- 提交与推送将在本文件验收完成后立即执行。
+1. 创建 `geometry/box-generator.js`：提供 `createBox(width, height, depth, appearance)` 和 `createCube(size, appearance)` 函数。
+2. 修改 `geometry.html`：引入 box-generator 模块，将正方体/长方体按钮接线。
+3. 交付文件：`geometry/box-generator.js`、`geometry.html`（共 2 个交付文件）。
+4. 审计文件：`TASKS.md`、`CURRENT_STATUS.md`（随任务同步更新）。
 
 ## 下一步
 
-执行 LAB-006：`feat: 建立长方体与正方体生成器`。
+完成 LAB-006 验收后，执行 LAB-007：`feat: 建立三棱柱生成器`。
 
 ## 已知风险与保护措施
 
-- 三个隔离分支必须在本任务提交后创建并推送，确保都包含交接协议。
-- Agent 2 分支创建后，Agent 1 基准分支停止业务开发，直到回审或用户明确恢复。
+- Agent 2 独立分支 `feature/spatial-geometry-agent2`，禁止合并回基准。
+- `feature/spatial-geometry-lab` 和 `backup/spatial-geometry-checkpoint-20260629` 禁止写入。
 
 ## 提交与远端
 
-- 提交：本文件所在提交，信息为 `docs: 建立接力 Agent 隔离与回审机制`
-- 推送：提交后立即推送至 `origin/feature/spatial-geometry-lab`
+- 提交：待验收通过后提交，信息为 `feat: 建立长方体与正方体生成器`
+- 推送：提交后立即推送至 `origin/feature/spatial-geometry-agent2`

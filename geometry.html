@@ -739,5 +739,108 @@
     }
   </script>
   <script type="module" src="/geometry/scene.js"></script>
+  <script type="module">
+    import { createBox, createCube } from "/geometry/box-generator.js";
+
+    const modelButtons = document.querySelectorAll(".model-button");
+    const sizeSlider = document.querySelector('.field input[aria-label="模型尺寸"]');
+    const sizeOutput = sizeSlider?.closest(".field")?.querySelector("output");
+    const opacitySlider = document.querySelector('.field input[aria-label="模型透明度"]');
+    const opacityOutput = opacitySlider?.closest(".field")?.querySelector("output");
+
+    let activeModel = null;
+    let currentType = "cube";
+    let currentSize = parseFloat(sizeSlider?.value) || 1;
+    let currentOpacity = parseInt(opacitySlider?.value, 10) / 100 || 1;
+
+    function removeActiveModel() {
+      if (activeModel && window.geometryLab) {
+        const { scene } = window.geometryLab;
+        scene.remove(activeModel);
+        disposeModel(activeModel);
+        activeModel = null;
+      }
+    }
+
+    function disposeModel(group) {
+      group.traverse((child) => {
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((m) => m.dispose());
+          } else {
+            child.material.dispose();
+          }
+        }
+      });
+    }
+
+    function buildModel() {
+      const appearance = { opacity: currentOpacity };
+      if (currentType === "cube") {
+        return createCube(currentSize, appearance);
+      }
+      return createBox(currentSize, currentSize * 1.5, currentSize * 0.8, appearance);
+    }
+
+    function placeModel() {
+      if (!window.geometryLab) return;
+      removeActiveModel();
+      const model = buildModel();
+      window.geometryLab.scene.add(model);
+      activeModel = model;
+    }
+
+    function updateSizeDisplay() {
+      if (sizeOutput) {
+        sizeOutput.textContent = currentSize.toFixed(1);
+      }
+    }
+
+    function updateOpacityDisplay() {
+      if (opacityOutput) {
+        opacityOutput.textContent = Math.round(currentOpacity * 100) + "%";
+      }
+    }
+
+    modelButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        modelButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+
+        const label = btn.querySelector("span:first-child")?.textContent?.trim();
+        if (label === "正方体") {
+          currentType = "cube";
+        } else if (label === "长方体") {
+          currentType = "box";
+        } else {
+          return;
+        }
+        placeModel();
+      });
+    });
+
+    sizeSlider?.addEventListener("input", () => {
+      currentSize = parseFloat(sizeSlider.value) || 1;
+      updateSizeDisplay();
+      if (currentType === "cube" || currentType === "box") {
+        placeModel();
+      }
+    });
+
+    opacitySlider?.addEventListener("input", () => {
+      currentOpacity = parseInt(opacitySlider.value, 10) / 100;
+      updateOpacityDisplay();
+      if (currentType === "cube" || currentType === "box") {
+        placeModel();
+      }
+    });
+
+    window.addEventListener("geometry:scene-ready", () => {
+      placeModel();
+    });
+  </script>
 </body>
 </html>
