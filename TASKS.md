@@ -20,7 +20,7 @@
 - [x] ● GOV-001 docs: 建立 AI 协作章程与任务看板
   - 文件：`.ai_rules.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：三个文件存在；状态定义一致；单任务修改不超过 3 个文件
-- [ ] ○ GOV-002 docs: 同步项目开发规范的规则优先级
+- [x] ● GOV-002 docs: 同步项目开发规范的规则优先级
   - 文件：`doc/PROJECT_RULES.md`、`TASKS.md`、`CURRENT_STATUS.md`
   - 验收：旧规则引用 `.ai_rules.md`；冲突优先级清晰
 - [ ] ○ GOV-003 docs: 编写空间几何模块架构决策
