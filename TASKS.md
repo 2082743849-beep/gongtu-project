@@ -7,10 +7,10 @@
 
 | 项目 | 当前结果 |
 |---|---|
-| 当前阶段 | M1 可操作的基础 3D 实验室 |
-| 已完成 | 15 项 |
+| 当前阶段 | M1 已完成并通过接力回审 |
+| 已完成 | 28 项 |
 | 进行中 | 0 项 |
-| 下一项 | LAB-006 建立长方体与正方体生成器 |
+| 下一项 | CUT-001 在三维场景显示无限切割平面 |
 | 功能分支 | `feature/spatial-geometry-lab` |
 
 ## 里程碑
@@ -18,7 +18,7 @@
 | 阶段 | 目标 | 状态 |
 |---|---|---|
 | M0 | 工程治理与现状保护 | ● 已完成 |
-| M1 | 可操作的基础 3D 实验室 | ◐ 进行中 |
+| M1 | 可操作的基础 3D 实验室 | ● 已完成 |
 | M2 | 无限切平面与精确截面 | ○ 待开始 |
 | M3 | 组合模型与空间视图题 | ○ 待开始 |
 | M4 | 参数化题库与管理工具 | ○ 待开始 |
@@ -111,13 +111,77 @@
   - 验收：场景显示地面网格、XYZ 坐标轴、原点、方向标签及可读颜色图例
   - 结果：已建立可释放的坐标辅助组，并通过 Canvas 状态暴露六类辅助元素
   - 提交：本任务所在提交
-- [ ] ○ LAB-006 feat: 建立长方体与正方体生成器
-- [ ] ○ LAB-007 feat: 建立三棱柱生成器
-- [ ] ○ LAB-008 feat: 建立三棱锥生成器
-- [ ] ○ LAB-009 feat: 建立圆柱生成器
-- [ ] ○ LAB-010 feat: 建立圆锥与球体生成器
-- [ ] ○ LAB-011 feat: 建立基础模型参数控制面板
-- [ ] ○ LAB-012 test: 验证基础模型参数和退化输入
+- [x] ● LAB-006 feat: 建立长方体与正方体生成器
+  - 交付文件：`geometry/box-generator.js`、`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
+  - 验收：`createBox(width, height, depth)` 和 `createCube(size)` 返回 Three.js Group；含实体网格 + 棱线；支持颜色/透明度外观配置；参数非法时安全降级为最小值；正方体/长方体按钮与尺寸/透明度滑块联动；语法检查通过；git diff 无冲突
+  - 结果：已建立参数化生成器，页面首次加载自动创建默认正方体，切换按钮/拖动滑块实时重建模型
+  - 提交：`54a7e9f`
+- [x] ● LAB-007 feat: 建立三棱柱生成器
+  - 交付文件：`geometry/prism-generator.js`、`geometry.html`
+  - 验收：三棱柱返回实体与棱线 Group；参数安全降级；页面切换和参数联动
+  - 结果：生成器漏提交后已由 `df84f29` 补齐，回审浏览器验证类型、参数和有限包围盒通过
+  - 提交：`df84f29`
+- [x] ● LAB-008 feat: 建立三棱锥生成器
+  - 文件：`geometry/pyramid-generator.js`、`geometry.html`
+  - 验收：createTriangularPyramid(baseSize, height, appearance) 基于 ConeGeometry(radialSegments=3) 生成三棱锥；语法检查通过；按钮与滑块联动
+  - 结果：已建立参数化三棱锥生成器，Group 含实体+棱线，支持颜色/透明度配置，参数安全降级
+  - 提交：`b5d770d`
+- [x] ● LAB-009 feat: 建立圆柱生成器
+  - 文件：`geometry/cylinder-generator.js`、`geometry.html`
+  - 验收：createCylinder(radiusTop, radiusBottom, height, radialSegments, appearance) 默认值 1/1/2/32；语法检查通过；按钮与滑块联动
+  - 结果：已建立参数化圆柱生成器，Group 含实体+棱线，安全降级
+  - 提交：`4f2f18b`
+- [x] ● LAB-010 feat: 建立圆锥与球体生成器
+  - 交付文件：`geometry/cone-generator.js`、`geometry/sphere-generator.js`、`geometry.html`
+  - 验收：圆锥和球体返回实体与棱线 Group；分段参数安全；页面切换和参数联动
+  - 结果：回审浏览器验证两类模型、动态参数和有限包围盒通过
+  - 提交：`29c42e9`
+- [x] ● LAB-011 feat: 建立基础模型参数控制面板
+  - 交付文件：`geometry.html`
+  - 验收：七类模型显示专属参数；颜色、透明度和 100ms 防抖重建有效
+  - 结果：回审逐类检查参数控件，并验证球体半径变化实时更新模型包围盒
+  - 提交：`7f5b694`
+- [x] ● LAB-012 test: 验证基础模型参数和退化输入
+  - 交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+  - 验收：测试源码进入 Git；干净安装可运行；覆盖七类模型正常、非法参数、有限坐标和外观
+  - 结果：回审补交真实可复现测试，122/122 通过；原 `beda165` 只改看板，不作为测试证据
+  - 提交：`84593ff`
+
+### M1 接力回审修复
+
+- [x] ● REVIEW-M1-001 fix: 修复模型首次加载与场景落位
+  - 交付文件：`geometry.html`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：首次打开立即出现默认正方体；模型底面与 `y=-1.5` 网格对齐；Canvas 暴露模型类型与包围盒
+  - 结果：已修复错过 `geometry:scene-ready` 的初始化竞态，并统一七类模型的场景落位
+  - 提交：本任务所在提交
+- [x] ● REVIEW-M1-002 test: 建立可复现生成器测试
+  - 交付文件：`tests/geometry-generators.test.mjs`、`tests/three-absolute-loader.mjs`、`package.json`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：测试源码进入 Git；从干净安装可运行；报告真实用例数并覆盖七类模型
+  - 结果：122/122 通过；覆盖七类正常结构、84 个尺寸非法输入、24 个分段非法输入、有限坐标及 7 个外观测试
+  - 提交：本任务所在提交
+- [x] ● REVIEW-M1-003 docs: 校正 M1 看板日志与交接文档
+  - 验收：TASKS、CURRENT_STATUS、工作日志、进度板与交接文档状态和提交一致
+  - 结果：已统一 M1 七项状态、真实测试数、修复提交、启动方式和下一继续点
+  - 提交：本任务所在提交
+- [x] ● CI-M1-001 ci: 将空间几何测试接入持续集成
+  - 交付文件：`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：工作流配置三个推送分支与手动触发；生成器测试作为独立步骤；本地 CI 等价检查通过
+  - 结果：工作流已增加手动触发、两个功能分支触发和 `npm run test:geometry`
+  - 提交：本任务所在提交
+- [x] ● CI-M1-002 ci: 升级 GitHub Actions Node 24 运行时
+  - 交付文件：`.github/workflows/check.yml`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：checkout、setup-node、setup-python 使用官方 Node 24 主版本；远端四作业全绿且无旧 Node 20 警告
+  - 结果：已升级到 checkout v6、setup-node v6、setup-python v6
+  - 提交：本任务所在提交
+- [x] ● INT-M1-001 merge: 整合已回审 M1 到主功能分支
+  - 验收：Agent 2 CI 全绿；创建回审备份；无冲突合并；合并后全量测试通过并推送
+  - 结果：Agent 2 四作业零警告通过，已建立回审备份并无冲突整合到主功能分支
+  - 提交：本任务所在合并提交
 
 ## M2：无限切平面与精确截面
 

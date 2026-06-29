@@ -83,6 +83,9 @@ AI 建模与数学求解必须分离：
 - 本地 Three.js WebGL 渲染器、透视相机和三点布光。
 - OrbitControls 旋转、缩放、平移、阻尼与视角复位。
 - 三维地面网格、XYZ 坐标轴、原点标记、方向标签与页面颜色图例。
+- 长方体、正方体、三棱柱、三棱锥、圆柱、圆锥和球体七类参数化模型。
+- 七类动态参数、颜色、透明度控制，以及统一网格落位。
+- 122 项仓库内可复现生成器测试。
 
 接手时不得重写这些基础设施。需要调整时，先在 `TASKS.md` 建立修复或重构任务并写清理由。
 
@@ -118,6 +121,7 @@ rg -c '^- \[x\] ●' TASKS.md
 node --check geometry/scene.js
 npm ci --ignore-scripts --no-audit --no-fund
 npm run deps:check
+npm run test:geometry
 ```
 
 ### Python
@@ -180,6 +184,8 @@ geometry/scene.js
 - `data-orbit-controls`
 - `data-zoom-range`
 - `data-coordinate-helpers`
+- `data-active-model`
+- `data-active-model-bounds`
 
 后续模块可以使用页面主世界的只读入口：
 
@@ -196,7 +202,7 @@ window.geometryLab
 3. 截面计算要有独立数学测试，不能只凭截图判断。
 4. `backend/main.py` 的 catch-all 静态路由可以提供 npm 模块，但正式部署必须执行根目录 `npm ci`。
 5. Electron 打包是否包含根目录依赖尚未验收，不得提前宣称桌面端完成。
-6. 当前尚未创建基础模型，场景只显示坐标网格与辅助标记是正常状态。
+6. 首次加载必须显示默认正方体；只显示网格说明模型初始化失败。
 7. 视图栏的正视、后视、左视、右视、俯视按钮尚未接线。
 8. 切割控件目前只有页面结构，真正实时切割属于 M2。
 
@@ -205,7 +211,7 @@ window.geometryLab
 新 Agent 必须以 `TASKS.md` 为准。写下本文件时，计划中的下一项产品任务是：
 
 ```text
-LAB-006 feat: 建立长方体与正方体生成器
+CUT-001 feat: 在三维场景显示无限切割平面
 ```
 
 如果看板已经推进到更后的任务，禁止退回本处重复实现。
@@ -293,3 +299,15 @@ git diff \
 7. 整合后再次运行完整测试，再走 PR、CI 和人工验收。
 
 任何 Agent 都禁止直接把接力分支合并到 `main`。
+
+## 13. M1 接力整合记录
+
+- Agent 2 分支：`feature/spatial-geometry-agent2`
+- 回审备份：`backup/spatial-geometry-agent2-reviewed-20260630`
+- 回审备份提交：`b0f7e8c`
+- 整合目标：`feature/spatial-geometry-lab`
+- 回审修复：首次模型初始化、统一网格落位、122 项可复现测试、审计文档校正
+- CI：四作业全绿，Node 24 官方 Action，0 条运行注解
+- 下一任务：`CUT-001 feat: 在三维场景显示无限切割平面`
+
+M1 整合后，新的产品开发恢复在 `feature/spatial-geometry-lab`，不得继续把 M2 写入已完成使命的 Agent 2 分支。
