@@ -23,3 +23,7 @@ backend/logs/
 # Electron
 desktop/node_modules/
 desktop/dist/
+
+# Windows system files
+Thumbs.db
+Desktop.ini
