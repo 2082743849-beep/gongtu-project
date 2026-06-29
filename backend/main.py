@@ -1,7 +1,9 @@
 """
+
 智学成语 · 后端 API 服务
 统一版：所有端点接入 JWT 认证
 """
+import sqlite3
 import json
 import logging
 import time

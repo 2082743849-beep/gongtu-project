@@ -121,6 +121,7 @@ def grade(question, student_answer: str) -> GradingResult:
                 raise RuntimeError(f"LLM调用失败（已重试3次）: {error_msg}") from e
 
             time.sleep(2 ** attempt)
+    raise RuntimeError("Unreachable")
 
 
 def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
@@ -163,6 +164,7 @@ def call_llm_api(prompt: str, system_prompt: str | None = None) -> str:
             elif attempt >= 2:
                 raise RuntimeError(f"LLM调用失败: {error_msg}") from e
             time.sleep(2 ** attempt)  # Exponential backoff: 1s, 2s, 4s
+    raise RuntimeError("Unreachable")
 
 
 def chat(question, user_message: str) -> str:
@@ -214,3 +216,4 @@ def chat(question, user_message: str) -> str:
                 raise RuntimeError(f"LLM调用失败（已重试3次）: {error_msg}") from e
 
             time.sleep(2 ** attempt)
+    raise RuntimeError("Unreachable")
