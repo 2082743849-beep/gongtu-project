@@ -1,9 +1,11 @@
 import * as THREE from "/node_modules/three/build/three.module.js";
+import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
 
 const canvas = document.querySelector("#geometryCanvas");
 const viewport = canvas?.closest(".viewport");
 const placeholder = document.querySelector("#stagePlaceholder");
 const statusChip = document.querySelector(".status-chip");
+const resetViewButton = document.querySelector('[aria-label="复位视角"]');
 
 if (!(canvas instanceof HTMLCanvasElement) || !(viewport instanceof HTMLElement)) {
   throw new Error("空间几何实验室缺少必要的三维视口元素");
@@ -46,9 +48,23 @@ scene.name = "GongTuGeometryScene";
 
 const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
 camera.name = "MainPerspectiveCamera";
-camera.position.set(5.4, 4.2, 6.8);
-camera.lookAt(0, 0.35, 0);
+const defaultCameraPosition = new THREE.Vector3(5.4, 4.2, 6.8);
+const defaultTarget = new THREE.Vector3(0, 0.35, 0);
+camera.position.copy(defaultCameraPosition);
+camera.lookAt(defaultTarget);
 scene.add(camera);
+
+const controls = new OrbitControls(camera, canvas);
+controls.target.copy(defaultTarget);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.enablePan = true;
+controls.screenSpacePanning = true;
+controls.minDistance = 2.8;
+controls.maxDistance = 18;
+controls.minPolarAngle = 0.08;
+controls.maxPolarAngle = Math.PI - 0.08;
+controls.update();
 
 const hemisphereLight = new THREE.HemisphereLight(0xfff8e8, 0x44645f, 2.1);
 hemisphereLight.name = "HemisphereFill";
@@ -83,8 +99,31 @@ resizeObserver.observe(viewport);
 resizeRenderer();
 
 renderer.setAnimationLoop(() => {
+  controls.update();
   renderer.render(scene, camera);
 });
+
+function updateCameraState() {
+  canvas.dataset.cameraPosition = camera.position
+    .toArray()
+    .map((value) => value.toFixed(3))
+    .join(",");
+  canvas.dataset.cameraTarget = controls.target
+    .toArray()
+    .map((value) => value.toFixed(3))
+    .join(",");
+}
+
+function resetView() {
+  camera.position.copy(defaultCameraPosition);
+  controls.target.copy(defaultTarget);
+  controls.update();
+  updateCameraState();
+}
+
+controls.addEventListener("change", updateCameraState);
+resetViewButton?.addEventListener("click", resetView);
+updateCameraState();
 
 if (placeholder) {
   placeholder.hidden = true;
@@ -98,12 +137,15 @@ canvas.dataset.renderer = "webgl";
 canvas.dataset.camera = camera.name;
 canvas.dataset.lightCount = "3";
 canvas.dataset.clipping = String(renderer.localClippingEnabled);
+canvas.dataset.orbitControls = "true";
+canvas.dataset.zoomRange = `${controls.minDistance},${controls.maxDistance}`;
 
 const geometryLab = Object.freeze({
   THREE,
   scene,
   camera,
   renderer,
+  controls,
   lights: Object.freeze({
     hemisphere: hemisphereLight,
     key: keyLight,
@@ -117,6 +159,9 @@ window.dispatchEvent(new CustomEvent("geometry:scene-ready", { detail: geometryL
 window.addEventListener(
   "pagehide",
   () => {
+    resetViewButton?.removeEventListener("click", resetView);
+    controls.removeEventListener("change", updateCameraState);
+    controls.dispose();
     resizeObserver.disconnect();
     renderer.setAnimationLoop(null);
     renderer.dispose();
