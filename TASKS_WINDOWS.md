@@ -1,7 +1,7 @@
 # 公途 — Windows 桌面版任务看板
 
 > 创建时间：2026-06-29
-> 当前分支：`feature/windows-compat` → PR #2 待合并
+> 当前分支：`feature/windows-compat` → PR #2 已合并 main
 > 目标：让公途学习平台在 macOS 和 Windows 上都能跑，代码跨平台但不搞混
 
 ---
@@ -21,7 +21,7 @@
 | 1 | macOS 桌面 Electron 壳 | ✅ 已合并 main (PR #1) |
 | 2 | Windows 启动入口 + 依赖适配 | ✅ 已完成 |
 | 3 | Electron 跨平台化（去硬编码） | ✅ 已完成 |
-| 4 | CI/CD 在三道机器人下全绿 | 🔄 等待 PR #2 CI 结果 |
+| 4 | CI/CD 在三道机器人下全绿 | ✅ 已合并 main (PR #2) |
 | 5 | Windows 上实际跑通验证 | ⬜ 待你在 Win 上测试 |
 | 6 | 两端自动打包 .dmg + .exe | ⬜ 远期 |
 
@@ -72,19 +72,15 @@
   - 支持手动触发
   - 提交：`f0a8286`
 
-- [x] **PR #2 已开**
+- [x] **PR #2 已开 → 已合并 main**
   - https://github.com/2082743849-beep/gongtu-project/pull/2
   - CI 自动触发 Ruff + mypy + Bandit
+  - 三道全绿 ✅ 合并
 
----
-
-### 🔄 进行中
-
-- [ ] **CI 三道机器人等待结果**
-  - Ruff 静态检查
-  - mypy 类型检查
-  - Bandit 安全检查
-  - 地址：https://github.com/2082743849-beep/gongtu-project/actions?query=branch%3Afeature%2Fwindows-compat
+- [x] **CI 三道机器人通过**
+  - Ruff 静态检查 ✅
+  - mypy 类型检查 ✅
+  - Bandit 安全检查 ✅
 
 ---
 
