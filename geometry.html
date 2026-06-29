@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="公途空间几何实验室：观察立体、移动切面并理解真实截面。">
+  <title>空间几何实验室 · 公途</title>
+  <style>
+    :root {
+      --ink: #252018;
+      --ink-soft: #655d52;
+      --paper: #f7f3ea;
+      --paper-deep: #ece3d3;
+      --panel: rgba(255, 253, 248, 0.92);
+      --line: rgba(91, 74, 51, 0.16);
+      --gold: #a77a38;
+      --gold-light: #d8b777;
+      --teal: #39736b;
+      --teal-soft: #dceae6;
+      --shadow: 0 18px 60px rgba(63, 47, 28, 0.12);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(216, 183, 119, 0.2), transparent 34%),
+        radial-gradient(circle at 88% 84%, rgba(57, 115, 107, 0.12), transparent 38%),
+        var(--paper);
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: 3px solid rgba(57, 115, 107, 0.35);
+      outline-offset: 2px;
+    }
+
+    .app-header {
+      min-height: 72px;
+      padding: 12px clamp(18px, 4vw, 56px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 243, 234, 0.86);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      color: #fffaf0;
+      background: var(--ink);
+      border-radius: 13px;
+      font-family: "STKaiti", "KaiTi", serif;
+      font-size: 22px;
+      box-shadow: 0 8px 22px rgba(37, 32, 24, 0.18);
+    }
+
+    .brand-copy strong,
+    .brand-copy span {
+      display: block;
+    }
+
+    .brand-copy strong {
+      letter-spacing: 0.12em;
+    }
+
+    .brand-copy span {
+      margin-top: 2px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .button {
+      min-height: 40px;
+      padding: 9px 16px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.54);
+      cursor: pointer;
+    }
+
+    .button-primary {
+      color: #fff;
+      border-color: var(--teal);
+      background: var(--teal);
+    }
+
+    .workspace {
+      width: min(1560px, 100%);
+      min-height: calc(100vh - 72px);
+      margin: 0 auto;
+      padding: clamp(16px, 2.4vw, 34px);
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(240px, 310px);
+      gap: 20px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      padding: 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-family: "STKaiti", "KaiTi", serif;
+      font-size: clamp(24px, 3vw, 36px);
+      font-weight: 700;
+    }
+
+    h2 {
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+
+    .intro {
+      margin-bottom: 24px;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .model-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .model-button {
+      width: 100%;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .model-button:hover,
+    .model-button[aria-pressed="true"] {
+      border-color: rgba(57, 115, 107, 0.2);
+      background: var(--teal-soft);
+    }
+
+    .model-icon {
+      color: var(--teal);
+      font-family: ui-monospace, monospace;
+      font-weight: 700;
+    }
+
+    .stage-column {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(460px, 1fr) auto;
+      gap: 14px;
+    }
+
+    .stage-heading {
+      padding: 6px 4px 0;
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .stage-heading p {
+      margin-bottom: 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .viewport {
+      position: relative;
+      min-height: 460px;
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(37, 32, 24, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(37, 32, 24, 0.035) 1px, transparent 1px),
+        linear-gradient(145deg, #fffdf8, #eee7db);
+      background-size: 28px 28px, 28px 28px, auto;
+    }
+
+    .viewport::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      box-shadow: inset 0 0 80px rgba(77, 57, 33, 0.08);
+    }
+
+    #geometryCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .empty-stage {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      padding: 30px;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .wire-cube {
+      width: 112px;
+      height: 112px;
+      margin: 0 auto 28px;
+      position: relative;
+      border: 2px solid rgba(57, 115, 107, 0.5);
+      transform: rotate(-8deg) skewY(8deg);
+    }
+
+    .wire-cube::before {
+      position: absolute;
+      inset: -18px 18px 18px -18px;
+      content: "";
+      border: 2px solid rgba(167, 122, 56, 0.45);
+    }
+
+    .cut-plane-demo {
+      width: 210px;
+      height: 86px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: -1;
+      border: 2px solid rgba(193, 82, 59, 0.72);
+      background: rgba(193, 82, 59, 0.16);
+      transform: translate(-50%, -66%) rotate(-13deg) skewX(-16deg);
+      box-shadow: 0 0 28px rgba(193, 82, 59, 0.16);
+    }
+
+    .cut-plane-demo::after {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      content: "无限切平面";
+      padding: 4px 8px;
+      color: #94412f;
+      background: rgba(255, 250, 244, 0.9);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      transform: translate(-50%, -50%);
+      white-space: nowrap;
+    }
+
+    .empty-stage strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .empty-stage span {
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .viewport-tools {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 2;
+      display: flex;
+      gap: 8px;
+    }
+
+    .tool-button {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: rgba(255, 253, 248, 0.88);
+      cursor: pointer;
+    }
+
+    .live-section-card {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 2;
+      min-width: 168px;
+      padding: 12px 14px;
+      border: 1px solid rgba(193, 82, 59, 0.26);
+      border-radius: 14px;
+      color: var(--ink);
+      background: rgba(255, 250, 244, 0.9);
+      box-shadow: 0 10px 30px rgba(90, 51, 37, 0.1);
+      backdrop-filter: blur(10px);
+    }
+
+    .live-section-card span,
+    .live-section-card strong {
+      display: block;
+    }
+
+    .live-section-card span {
+      color: #94412f;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+    }
+
+    .live-section-card strong {
+      margin-top: 4px;
+      font-size: 14px;
+    }
+
+    .view-strip {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+    }
+
+    .view-button {
+      padding: 9px 6px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .view-button[aria-pressed="true"] {
+      color: var(--teal);
+      border-color: rgba(57, 115, 107, 0.18);
+      background: var(--teal-soft);
+      font-weight: 700;
+    }
+
+    .controls {
+      padding: 22px;
+      align-self: start;
+    }
+
+    .control-section + .control-section {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .field output {
+      color: var(--teal);
+      font-variant-numeric: tabular-nums;
+    }
+
+    select {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      color: var(--ink);
+      background: #fffdf8;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+
+    .section-placeholder {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(216, 183, 119, 0.07);
+    }
+
+    .mode-button {
+      min-height: 42px;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .mode-button[aria-pressed="true"] {
+      color: #94412f;
+      border-color: rgba(193, 82, 59, 0.24);
+      background: rgba(193, 82, 59, 0.1);
+      font-weight: 700;
+    }
+
+    .cut-note {
+      margin: 12px 0 0;
+      color: var(--ink-soft);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: var(--teal);
+      background: var(--teal-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-chip::before {
+      width: 7px;
+      height: 7px;
+      content: "";
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    @media (max-width: 1080px) {
+      .workspace {
+        grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
+      }
+
+      .controls {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+
+      .control-section + .control-section {
+        margin-top: 0;
+        padding-top: 0;
+        padding-left: 22px;
+        border-top: 0;
+        border-left: 1px solid var(--line);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-header {
+        align-items: flex-start;
+      }
+
+      .header-actions .button:first-child {
+        display: none;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        order: 2;
+      }
+
+      .stage-column {
+        order: 1;
+        grid-template-rows: auto minmax(380px, 58vh) auto;
+      }
+
+      .controls {
+        order: 3;
+        grid-column: auto;
+        grid-template-columns: 1fr;
+      }
+
+      .control-section + .control-section {
+        margin-top: 4px;
+        padding-top: 22px;
+        padding-left: 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      .model-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .view-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="返回公途首页">
+      <span class="brand-mark" aria-hidden="true">公</span>
+      <span class="brand-copy">
+        <strong>空间几何实验室</strong>
+        <span>GONGTU · SPATIAL LAB</span>
+      </span>
+    </a>
+    <div class="header-actions">
+      <button class="button" type="button">使用说明</button>
+      <button class="button button-primary" type="button">进入题库</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel sidebar" aria-labelledby="model-library-title">
+      <p class="eyebrow">Model Library</p>
+      <h1 id="model-library-title">选择一个立体</h1>
+      <p class="intro">先从标准模型开始观察。之后可以添加组合体、题目图片和自定义参数。</p>
+
+      <nav class="model-list" aria-label="基础立体模型">
+        <button class="model-button" type="button" aria-pressed="true">
+          <span>正方体</span><span class="model-icon">□</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>长方体</span><span class="model-icon">▭</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>三棱柱</span><span class="model-icon">△</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>三棱锥</span><span class="model-icon">◇</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>圆柱</span><span class="model-icon">○</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>圆锥</span><span class="model-icon">▽</span>
+        </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>球体</span><span class="model-icon">◯</span>
+        </button>
+      </nav>
+    </aside>
+
+    <section class="stage-column" aria-labelledby="stage-title">
+      <div class="stage-heading">
+        <div>
+          <p class="eyebrow">Interactive Viewport</p>
+          <h1 id="stage-title">观察与切割</h1>
+          <p>拖拽旋转 · 滚轮缩放 · 移动切面</p>
+        </div>
+        <span class="status-chip">准备就绪</span>
+      </div>
+
+      <div class="panel viewport" aria-label="三维模型观察区域">
+        <canvas id="geometryCanvas">
+          当前浏览器不支持 Canvas，请升级浏览器后重试。
+        </canvas>
+        <div class="empty-stage" id="stagePlaceholder">
+          <div>
+            <div class="wire-cube" aria-hidden="true">
+              <div class="cut-plane-demo"></div>
+            </div>
+            <strong>在模型上直接看见切割过程</strong>
+            <span>拖动或倾斜红色切平面，模型与高亮截面将实时变化。</span>
+          </div>
+        </div>
+        <div class="viewport-tools" aria-label="视图工具">
+          <button class="tool-button" type="button" aria-label="复位视角">↺</button>
+          <button class="tool-button" type="button" aria-label="切换全屏">⛶</button>
+        </div>
+        <div class="live-section-card" aria-label="实时截面状态">
+          <span>LIVE SECTION</span>
+          <strong>截面将在模型内部实时高亮</strong>
+        </div>
+      </div>
+
+      <div class="panel view-strip" aria-label="标准观察方向">
+        <button class="view-button" type="button" aria-pressed="true">透视</button>
+        <button class="view-button" type="button" aria-pressed="false">正视</button>
+        <button class="view-button" type="button" aria-pressed="false">后视</button>
+        <button class="view-button" type="button" aria-pressed="false">左视</button>
+        <button class="view-button" type="button" aria-pressed="false">右视</button>
+        <button class="view-button" type="button" aria-pressed="false">俯视</button>
+      </div>
+    </section>
+
+    <aside class="panel controls" aria-label="模型与切面控制">
+      <section class="control-section" aria-labelledby="model-settings-title">
+        <p class="eyebrow">Object</p>
+        <h2 id="model-settings-title">模型参数</h2>
+        <label class="field">
+          <span class="field-row"><span>模型类型</span></span>
+          <select aria-label="模型类型">
+            <option>正方体</option>
+            <option>长方体</option>
+            <option>三棱柱</option>
+            <option>三棱锥</option>
+            <option>圆柱</option>
+            <option>圆锥</option>
+            <option>球体</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-row"><span>尺寸</span><output>1.0</output></span>
+          <input type="range" min="0.5" max="3" step="0.1" value="1" aria-label="模型尺寸">
+        </label>
+        <label class="field">
+          <span class="field-row"><span>透明度</span><output>100%</output></span>
+          <input type="range" min="10" max="100" step="5" value="100" aria-label="模型透明度">
+        </label>
+      </section>
+
+      <section class="control-section" aria-labelledby="cut-settings-title">
+        <p class="eyebrow">Cutting Plane</p>
+        <h2 id="cut-settings-title">无限切平面</h2>
+        <div class="section-placeholder" aria-label="切割模式">
+          <button class="mode-button" type="button" aria-pressed="true">自由切割 · 连续拖动与倾斜</button>
+          <button class="mode-button" type="button" aria-pressed="false">题目切割 · 由 A、B、C 三点锁定</button>
+        </div>
+        <label class="field">
+          <span class="field-row"><span>平面位置</span><output>0.00</output></span>
+          <input type="range" min="-2" max="2" step="0.01" value="0" aria-label="切割平面位置">
+        </label>
+        <label class="field">
+          <span class="field-row"><span>水平倾角</span><output>0°</output></span>
+          <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面水平倾角">
+        </label>
+        <label class="field">
+          <span class="field-row"><span>垂直倾角</span><output>0°</output></span>
+          <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面垂直倾角">
+        </label>
+        <p class="cut-note">切面结果不需要另开页面：刀移动到哪里，模型就实时剖到哪里；被切开的封口会直接在三维场景中高亮。</p>
+      </section>
+    </aside>
+  </main>
+</body>
+</html>
