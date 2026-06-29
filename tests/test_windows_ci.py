@@ -1,18 +1,22 @@
 """
-Windows CI 集成测试
-在 GitHub Actions windows-latest 上运行，验证：
-1. 所有后端模块可正确导入
-2. requirements.txt 依赖完整
-3. 服务能启动并响应 /api/health
+Windows CI integration test
+Runs on GitHub Actions windows-latest, verifying:
+1. All backend modules import correctly
+2. requirements.txt dependencies are complete
+3. Server starts and responds to /api/health
 """
 import os
 import sys
+import io
 import json
 import time
-import signal
 import subprocess
 import urllib.request
 import urllib.error
+
+# Force UTF-8 output on Windows (cp1252 can't encode CJK)
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKEND_DIR = os.path.join(PROJECT_DIR, "backend")
