@@ -220,3 +220,76 @@ LAB-006 feat: 建立长方体与正方体生成器
 - 禁止任务未验收就打勾。
 - 禁止只在聊天中报告完成而不真实修改 `TASKS.md`。
 - 禁止一次完成多个看板任务后只做一个大提交。
+
+## 11. Agent 2 隔离分支方案
+
+不新建仓库。新仓库会失去现有提交历史、CI、任务看板和可审查的共同基线。
+
+采用三个远端分支：
+
+| 分支 | 用途 | 谁能写 |
+|---|---|---|
+| `feature/spatial-geometry-lab` | Agent 1 已验收的整合基准 | Agent 2 禁止写入 |
+| `backup/spatial-geometry-checkpoint-20260629` | 只读事故恢复点 | 所有 Agent 禁止写入 |
+| `feature/spatial-geometry-agent2` | Agent 2 接力开发 | Agent 2 只能写这里 |
+
+Agent 2 必须使用独立工作树，不能复用 Agent 1 的工作目录：
+
+```text
+/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-agent2
+```
+
+建议创建方式：
+
+```bash
+git fetch origin --prune
+git worktree add \
+  /Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-agent2 \
+  feature/spatial-geometry-agent2
+```
+
+Agent 2 接手后必须确认：
+
+```bash
+git branch --show-current
+git status --short --branch
+git merge-base --is-ancestor \
+  origin/feature/spatial-geometry-lab \
+  feature/spatial-geometry-agent2
+```
+
+Agent 2 每完成一个任务必须：
+
+1. 更新并打勾 `TASKS.md`。
+2. 更新 `CURRENT_STATUS.md`。
+3. 在 `doc/AGENT_WORK_LOG.md` 追加本 Agent 的任务记录。
+4. 执行任务验收。
+5. 用任务原名提交。
+6. 推送 `origin/feature/spatial-geometry-agent2`。
+7. 禁止合并、变基、强推或删除任何基准/备份分支。
+
+## 12. Agent 1 返回后的审核流程
+
+Agent 1 恢复后不得直接相信“已完成”，必须：
+
+```bash
+git fetch origin --prune
+git log --oneline --decorate \
+  origin/feature/spatial-geometry-lab..origin/feature/spatial-geometry-agent2
+git diff --stat \
+  origin/feature/spatial-geometry-lab...origin/feature/spatial-geometry-agent2
+git diff \
+  origin/feature/spatial-geometry-lab...origin/feature/spatial-geometry-agent2
+```
+
+然后按顺序执行：
+
+1. 核对 `TASKS.md`、`CURRENT_STATUS.md` 和 `AGENT_WORK_LOG.md` 是否一致。
+2. 检查是否触碰任务范围外文件、密钥、数据库或用户文件。
+3. 对每个新增提交进行代码审查。
+4. 运行完整 Python、JavaScript、FastAPI、浏览器和几何回归测试。
+5. 发现问题时在 Agent 2 分支追加修复提交，不污染基准分支。
+6. 全部通过后，才允许把 Agent 2 分支合并或逐提交拣选到 `feature/spatial-geometry-lab`。
+7. 整合后再次运行完整测试，再走 PR、CI 和人工验收。
+
+任何 Agent 都禁止直接把接力分支合并到 `main`。
