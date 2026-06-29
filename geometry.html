@@ -686,21 +686,10 @@
       <section class="control-section" aria-labelledby="model-settings-title">
         <p class="eyebrow">Object</p>
         <h2 id="model-settings-title">模型参数</h2>
+        <div id="model-params"></div>
         <label class="field">
-          <span class="field-row"><span>模型类型</span></span>
-          <select aria-label="模型类型">
-            <option>正方体</option>
-            <option>长方体</option>
-            <option>三棱柱</option>
-            <option>三棱锥</option>
-            <option>圆柱</option>
-            <option>圆锥</option>
-            <option>球体</option>
-          </select>
-        </label>
-        <label class="field">
-          <span class="field-row"><span>尺寸</span><output>1.0</output></span>
-          <input type="range" min="0.5" max="3" step="0.1" value="1" aria-label="模型尺寸">
+          <span class="field-row"><span>颜色</span></span>
+          <input type="color" value="#f5f1e8" aria-label="模型颜色" style="width:100%;height:34px;border:1px solid var(--color-border);border-radius:6px;cursor:pointer;">
         </label>
         <label class="field">
           <span class="field-row"><span>透明度</span><output>100%</output></span>
@@ -747,16 +736,74 @@
     import { createCone } from "/geometry/cone-generator.js";
     import { createSphere } from "/geometry/sphere-generator.js";
 
+    /* ── 每个模型类型对应的参数控件定义 ── */
+    const PARAM_DEFS = {
+      cube: {
+        size: { label: "边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      box: {
+        width: { label: "长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.5 },
+        depth: { label: "宽", min: 0.3, max: 4, step: 0.1, default: 0.8 },
+      },
+      triangularPrism: {
+        baseSize: { label: "底边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      triangularPyramid: {
+        baseSize: { label: "底边长", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+      },
+      cylinder: {
+        radiusTop: { label: "上半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        radiusBottom: { label: "下半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        segments: { label: "分段", min: 3, max: 128, step: 1, default: 32 },
+      },
+      cone: {
+        radius: { label: "半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        height: { label: "高", min: 0.3, max: 4, step: 0.1, default: 1.0 },
+        segments: { label: "分段", min: 3, max: 128, step: 1, default: 32 },
+      },
+      sphere: {
+        radius: { label: "半径", min: 0.1, max: 2, step: 0.05, default: 0.5 },
+        widthSegments: { label: "经线", min: 3, max: 64, step: 1, default: 32 },
+        heightSegments: { label: "纬线", min: 2, max: 64, step: 1, default: 16 },
+      },
+    };
+
+    /* ── DOM 引用 ── */
     const modelButtons = document.querySelectorAll(".model-button");
-    const sizeSlider = document.querySelector('.field input[aria-label="模型尺寸"]');
-    const sizeOutput = sizeSlider?.closest(".field")?.querySelector("output");
-    const opacitySlider = document.querySelector('.field input[aria-label="模型透明度"]');
+    const modelParamsEl = document.getElementById("model-params");
+    const colorInput = document.querySelector('input[aria-label="模型颜色"]');
+    const opacitySlider = document.querySelector('input[aria-label="模型透明度"]');
     const opacityOutput = opacitySlider?.closest(".field")?.querySelector("output");
 
+    /* ── 状态 ── */
     let activeModel = null;
     let currentType = "cube";
-    let currentSize = parseFloat(sizeSlider?.value) || 1;
-    let currentOpacity = parseInt(opacitySlider?.value, 10) / 100 || 1;
+    let currentOpacity = (parseInt(opacitySlider?.value, 10) || 100) / 100;
+    let currentColor = colorInput?.value || "#f5f1e8";
+    let paramValues = {};
+
+    /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
+    function initParamValues() {
+      paramValues = {};
+      for (const [type, defs] of Object.entries(PARAM_DEFS)) {
+        paramValues[type] = {};
+        for (const [key, def] of Object.entries(defs)) {
+          paramValues[type][key] = def.default;
+        }
+      }
+    }
+    initParamValues();
+
+    /* ── Debounce：100ms 内多次参数变动只重建一次 ── */
+    let rebuildTimer = null;
+    function debouncedPlaceModel() {
+      clearTimeout(rebuildTimer);
+      rebuildTimer = setTimeout(placeModel, 100);
+    }
 
     function removeActiveModel() {
       if (activeModel && window.geometryLab) {
@@ -769,9 +816,7 @@
 
     function disposeModel(group) {
       group.traverse((child) => {
-        if (child.geometry) {
-          child.geometry.dispose();
-        }
+        if (child.geometry) child.geometry.dispose();
         if (child.material) {
           if (Array.isArray(child.material)) {
             child.material.forEach((m) => m.dispose());
@@ -782,27 +827,28 @@
       });
     }
 
+    /* ── 构建模型：根据当前类型和参数值调用对应生成器 ── */
     function buildModel() {
-      const appearance = { opacity: currentOpacity };
-      if (currentType === "cube") {
-        return createCube(currentSize, appearance);
+      const p = paramValues[currentType] || {};
+      const appearance = { opacity: currentOpacity, color: parseInt(currentColor.slice(1), 16) };
+      switch (currentType) {
+        case "cube":
+          return createCube(p.size ?? 1, appearance);
+        case "box":
+          return createBox(p.width ?? 1, p.height ?? 1.5, p.depth ?? 0.8, appearance);
+        case "triangularPrism":
+          return createTriangularPrism(p.baseSize ?? 1, p.height ?? 1, appearance);
+        case "triangularPyramid":
+          return createTriangularPyramid(p.baseSize ?? 1, p.height ?? 1, appearance);
+        case "cylinder":
+          return createCylinder(p.radiusTop ?? 0.5, p.radiusBottom ?? 0.5, p.height ?? 1, p.segments ?? 32, appearance);
+        case "cone":
+          return createCone(p.radius ?? 0.5, p.height ?? 1, p.segments ?? 32, appearance);
+        case "sphere":
+          return createSphere(p.radius ?? 0.5, p.widthSegments ?? 32, p.heightSegments ?? 16, appearance);
+        default:
+          return createCube(1, appearance);
       }
-      if (currentType === "triangularPrism") {
-        return createTriangularPrism(currentSize, currentSize, appearance);
-      }
-      if (currentType === "triangularPyramid") {
-        return createTriangularPyramid(currentSize, currentSize, appearance);
-      }
-      if (currentType === "cylinder") {
-        return createCylinder(currentSize / 2, currentSize / 2, currentSize, 32, appearance);
-      }
-      if (currentType === "cone") {
-        return createCone(currentSize / 2, currentSize, 32, appearance);
-      }
-      if (currentType === "sphere") {
-        return createSphere(currentSize / 2, 32, 16, appearance);
-      }
-      return createBox(currentSize, currentSize * 1.5, currentSize * 0.8, appearance);
     }
 
     function placeModel() {
@@ -813,10 +859,38 @@
       activeModel = model;
     }
 
-    function updateSizeDisplay() {
-      if (sizeOutput) {
-        sizeOutput.textContent = currentSize.toFixed(1);
+    /* ── 渲染当前模型类型的参数控件 ── */
+    function renderParams() {
+      if (!modelParamsEl) return;
+      const defs = PARAM_DEFS[currentType];
+      if (!defs) return;
+      const p = paramValues[currentType] || {};
+      let html = "";
+      for (const [key, def] of Object.entries(defs)) {
+        const val = p[key] ?? def.default;
+        const stepStr = def.step < 1 ? Number(def.step.toFixed(2)).toString() : String(def.step);
+        html += `<label class="field">
+          <span class="field-row"><span>${def.label}</span><output>${val}</output></span>
+          <input type="range" min="${def.min}" max="${def.max}" step="${stepStr}" value="${val}" data-param="${key}" aria-label="${def.label}">
+        </label>`;
       }
+      modelParamsEl.innerHTML = html;
+
+      /* 每个 slider 绑定 input 事件 */
+      modelParamsEl.querySelectorAll("input[type=range]").forEach((slider) => {
+        slider.addEventListener("input", () => {
+          const param = slider.dataset.param;
+          const value = parseFloat(slider.value);
+          const def = defs[param];
+          /* 整数步长的 slider 取整 */
+          const rounded = def.step >= 1 ? Math.round(value) : +value.toFixed(3);
+          paramValues[currentType][param] = rounded;
+          slider.value = rounded;
+          const output = slider.closest(".field")?.querySelector("output");
+          if (output) output.textContent = rounded;
+          debouncedPlaceModel();
+        });
+      });
     }
 
     function updateOpacityDisplay() {
@@ -825,48 +899,56 @@
       }
     }
 
+    /* ── 模型按钮切换 ── */
     modelButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         modelButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
         btn.setAttribute("aria-pressed", "true");
 
         const label = btn.querySelector("span:first-child")?.textContent?.trim();
-        if (label === "正方体") {
-          currentType = "cube";
-        } else if (label === "长方体") {
-          currentType = "box";
-        } else if (label === "三棱柱") {
-          currentType = "triangularPrism";
-        } else if (label === "三棱锥") {
-          currentType = "triangularPyramid";
-        } else if (label === "圆柱") {
-          currentType = "cylinder";
-        } else if (label === "圆锥") {
-          currentType = "cone";
-        } else if (label === "球体") {
-          currentType = "sphere";
-        } else {
-          return;
-        }
+        const map = {
+          "正方体": "cube",
+          "长方体": "box",
+          "三棱柱": "triangularPrism",
+          "三棱锥": "triangularPyramid",
+          "圆柱": "cylinder",
+          "圆锥": "cone",
+          "球体": "sphere",
+        };
+        if (!map[label]) return;
+        currentType = map[label];
+        renderParams();
         placeModel();
       });
     });
 
-    sizeSlider?.addEventListener("input", () => {
-      currentSize = parseFloat(sizeSlider.value) || 1;
-      updateSizeDisplay();
-      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder" || currentType === "cone" || currentType === "sphere") {
-        placeModel();
-      }
+    /* ── 颜色与透明度 ── */
+    colorInput?.addEventListener("input", () => {
+      currentColor = colorInput.value;
+      debouncedPlaceModel();
     });
 
     opacitySlider?.addEventListener("input", () => {
       currentOpacity = parseInt(opacitySlider.value, 10) / 100;
       updateOpacityDisplay();
-      if (currentType === "cube" || currentType === "box" || currentType === "triangularPrism" || currentType === "triangularPyramid" || currentType === "cylinder" || currentType === "cone" || currentType === "sphere") {
-        placeModel();
-      }
+      debouncedPlaceModel();
     });
+
+    /* ── 初始化：支持 URL hash 切换初始模型 ── */
+    function applyHashModel() {
+      const hash = window.location.hash?.replace("#", "");
+      const reverse = { cube: "正方体", box: "长方体", triangularPrism: "三棱柱", triangularPyramid: "三棱锥", cylinder: "圆柱", cone: "圆锥", sphere: "球体" };
+      if (reverse[hash]) {
+        currentType = hash;
+        modelButtons.forEach((b) => {
+          const lbl = b.querySelector("span:first-child")?.textContent?.trim();
+          b.setAttribute("aria-pressed", lbl === reverse[hash] ? "true" : "false");
+        });
+      }
+    }
+    applyHashModel();
+    renderParams();
+    updateOpacityDisplay();
 
     window.addEventListener("geometry:scene-ready", () => {
       placeModel();
