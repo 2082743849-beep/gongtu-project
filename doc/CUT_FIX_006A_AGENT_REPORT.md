@@ -86,30 +86,88 @@ ux-freeplane 分支在两个提交中：
 
 ---
 
-## 三、当前交付分支状态
+## 三、完整的提交链（从标签到 HEAD）
+
+```
+365d7f9 ← cutfix006a-handoff-v1 标签（冻结基线）
+  │
+  ├── cb10a21 feat: 建立阶梯组合体验收入口
+  │     改动: geometry/staircase-fixture.js (+101), geometry.html (+7),
+  │           tests/staircase-fixture.test.mjs (+144), TASKS.md, CURRENT_STATUS.md
+  │     4个禁止文件: 全部未动 ✅
+  │
+  ├── dadfbd2 docs: CUT-FIX-006A Agent 执行报告
+  │     改动: doc/CUT_FIX_006A_AGENT_REPORT.md (+139)
+  │
+  └── 00acfe8 feat: 凹形截面多边形排序包装层（不修改冻结文件）← HEAD
+        改动: geometry/section-polygon-order.js (+210, 新文件),
+             geometry.html (+1/-1, 仅改 import 来源)
+        4个禁止文件: 全部未动 ✅
+```
+
+### 每次提交的详细变更
+
+#### 第 1 次提交 `cb10a21` — 阶梯组合体验收入口
+| 文件 | 操作 | 行数 | 说明 |
+|------|------|------|------|
+| `geometry/staircase-fixture.js` | 新建 | +101 | 3阶18方块阶梯，BlockArray 构建 |
+| `geometry.html` | 修改 | +7 | 新增 import + 按钮 + model case |
+| `tests/staircase-fixture.test.mjs` | 新建 | +144 | 9项专项测试 |
+| `TASKS.md` | 修改 | +13/-8 | 更新任务状态 |
+| `CURRENT_STATUS.md` | 修改 | +44/-15 | 更新当前状态 |
+
+#### 第 2 次提交 `dadfbd2` — 交接报告
+| 文件 | 操作 | 行数 | 说明 |
+|------|------|------|------|
+| `doc/CUT_FIX_006A_AGENT_REPORT.md` | 新建 | +139 | 完整分支关系 + 执行记录 + 风险评估 |
+
+#### 第 3 次提交 `00acfe8` — 凹形截面修复包装层（HEAD）
+| 文件 | 操作 | 行数 | 说明 |
+|------|------|------|------|
+| `geometry/section-polygon-order.js` | 新建 | +210 | 包装层：透传冻结文件函数 + traceConcavePolygon 凹形排序 |
+| `geometry.html` | 修改 | +1/-1 | 仅改 1 行：import 来源指向包装层 |
+| `geometry/plane-intersections.js` | **未动** ✅ | 0 | 冻结安全 |
+| `geometry/cutting-plane.js` | **未动** ✅ | 0 | 冻结安全 |
+| `geometry/section-mode.js` | **未动** ✅ | 0 | 冻结安全 |
+| `geometry/cutaway-visual.js` | **未动** ✅ | 0 | 冻结安全 |
+
+### 包装层设计原理
+
+```
+之前（凹形多边形出错）:
+  geometry.html ──import──→ plane-intersections.js（冻结，不能改）
+                              └── orderAndCloseSection() → 角度排序 → 凹形错误
+
+现在（修复后）:
+  geometry.html ──import──→ section-polygon-order.js（新包装层，可自由修改）
+                              ├── 透传 collectWorldEdges / intersectEdgesWithPlane
+                              └── orderAndCloseSection() → 增强版
+                                    ├── 1. 先跑原始角度排序
+                                    ├── 2. traceConcavePolygon() 可见性追踪重排
+                                    └── 3. 仅追踪面积≥原始面积时采用（凸形自动回退）
+```
+
+### 当前交付分支状态
 
 ```
 分支: feature/spatial-geometry-cutfix006a-agent
-本地提交: cb10a21
-远程提交: 9816902（需 force push 覆盖以移除截图）
+HEAD: 00acfe8
 标签基线: cutfix006a-handoff-v1 (365d7f9)
 
-交付文件（3个）:
-  ✅ geometry/staircase-fixture.js (2938 bytes)
-  ✅ geometry.html (已修改，新增阶梯入口)
-  ✅ tests/staircase-fixture.test.mjs (5844 bytes)
-
-审计文件（已更新）:
-  ✅ TASKS.md
-  ✅ CURRENT_STATUS.md
+交付文件:
+  ✅ geometry/staircase-fixture.js
+  ✅ geometry.html
+  ✅ tests/staircase-fixture.test.mjs
+  ✅ geometry/section-polygon-order.js（新增包装层）
+  ✅ doc/CUT_FIX_006A_AGENT_REPORT.md（本报告）
 
 禁止文件（全部未动）:
-  ✅ geometry/cutting-plane.js
-  ✅ geometry/plane-intersections.js
-  ✅ geometry/section-mode.js
-  ✅ geometry/cutaway-visual.js
+  ✅ geometry/cutting-plane.js —— 0 行变更
+  ✅ geometry/plane-intersections.js —— 0 行变更
+  ✅ geometry/section-mode.js —— 0 行变更
+  ✅ geometry/cutaway-visual.js —— 0 行变更
 
-测试: 367/367 pass
+测试: 367/367 pass，0 fail
 ```
 
 ---
