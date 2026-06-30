@@ -798,6 +798,12 @@
     import { createCylinder } from "/geometry/cylinder-generator.js";
     import { createCone } from "/geometry/cone-generator.js";
     import { createSphere } from "/geometry/sphere-generator.js";
+    import {
+      collectWorldEdges,
+      intersectEdgesWithPlane,
+      orderAndCloseSection,
+    } from "/geometry/plane-intersections.js";
+    import { createSectionVisual } from "/geometry/section-visual.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -859,6 +865,7 @@
     let currentOpacity = (parseInt(opacitySlider?.value, 10) || 100) / 100;
     let currentColor = colorInput?.value || "#f5f1e8";
     let paramValues = {};
+    let sectionVisual = null;
 
     /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
     function initParamValues() {
@@ -958,7 +965,7 @@
     /* ── 对 activeModel 的所有 Mesh 材质设置 clippingPlanes ── */
     function applyClipping() {
       if (!activeModel || !window.geometryLab) return;
-      const { cuttingPlane, THREE: T } = window.geometryLab;
+      const { cuttingPlane } = window.geometryLab;
       const plane = cuttingPlane.plane;
       activeModel.traverse((child) => {
         if (child.isMesh && child.material) {
@@ -976,6 +983,54 @@
       });
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) canvas.dataset.modelClipping = "true";
+      updateSectionVisual();
+    }
+
+    function ensureSectionVisual() {
+      if (!sectionVisual && window.geometryLab) {
+        sectionVisual = createSectionVisual();
+        window.geometryLab.scene.add(sectionVisual.group);
+      }
+      return sectionVisual;
+    }
+
+    function clearSectionVisual(status = "empty") {
+      ensureSectionVisual()?.clear();
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.sectionStatus = status;
+        canvas.dataset.sectionVertexCount = "0";
+        canvas.dataset.sectionArea = "0";
+      }
+    }
+
+    function updateSectionVisual() {
+      if (!activeModel || !window.geometryLab) {
+        clearSectionVisual("no-model");
+        return;
+      }
+      try {
+        const plane = window.geometryLab.cuttingPlane.plane;
+        const intersections = intersectEdgesWithPlane(
+          collectWorldEdges(activeModel),
+          plane,
+        );
+        const polygon = orderAndCloseSection(intersections.points, plane);
+        if (polygon.status !== "polygon") {
+          clearSectionVisual(polygon.reason);
+          return;
+        }
+        ensureSectionVisual().update(polygon);
+        const canvas = document.querySelector("#geometryCanvas");
+        if (canvas) {
+          canvas.dataset.sectionStatus = "visible";
+          canvas.dataset.sectionVertexCount = String(polygon.points.length);
+          canvas.dataset.sectionArea = String(polygon.signedArea);
+        }
+      } catch (error) {
+        clearSectionVisual("error");
+        console.error("截面高亮更新失败", error);
+      }
     }
 
     function clearInvalidLockedPlane(message, errorCode) {
@@ -995,6 +1050,7 @@
         canvas.dataset.cuttingPlaneError = errorCode;
         canvas.dataset.modelClipping = "false";
       }
+      clearSectionVisual("invalid-plane");
       if (cutLockStatus) cutLockStatus.textContent = message;
     }
 

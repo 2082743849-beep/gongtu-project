@@ -9,6 +9,7 @@ import {
   intersectSegmentWithPlane,
   orderAndCloseSection,
 } from "../geometry/plane-intersections.js";
+import { createSectionVisual } from "../geometry/section-visual.js";
 
 const X_ZERO_PLANE = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
 
@@ -204,4 +205,40 @@ test("diagonal cube section closes as a six-vertex polygon", () => {
   assert.equal(polygon.points.length, 6);
   assert.equal(polygon.closedPoints.length, 7);
   assert.ok(Math.abs(polygon.signedArea - 3 * Math.sqrt(3)) < 1e-9);
+});
+
+test("section visual creates a triangulated fill and closed outline", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const polygon = orderAndCloseSection(
+    [
+      vector(-1, -1, 0),
+      vector(1, -1, 0),
+      vector(1, 1, 0),
+      vector(-1, 1, 0),
+    ],
+    plane,
+  );
+  const visual = createSectionVisual({ surfaceOffset: 0.002 });
+
+  assert.equal(visual.update(polygon), true);
+  assert.equal(visual.group.visible, true);
+  assert.equal(visual.group.userData.vertexCount, 4);
+  assert.equal(visual.fill.geometry.getAttribute("position").count, 4);
+  assert.equal(visual.fill.geometry.getIndex().count, 6);
+  assert.equal(visual.outline.geometry.getAttribute("position").count, 5);
+  assert.ok(
+    visual.fill.geometry.getAttribute("position").getZ(0) > 0,
+    "fill must be offset toward the retained side",
+  );
+
+  visual.dispose();
+});
+
+test("section visual clears stale geometry for degenerate input", () => {
+  const visual = createSectionVisual();
+  assert.equal(visual.update({ status: "degenerate", points: [] }), false);
+  assert.equal(visual.group.visible, false);
+  assert.equal(visual.group.userData.vertexCount, 0);
+  assert.equal(visual.fill.geometry.getAttribute("position"), undefined);
+  visual.dispose();
 });
