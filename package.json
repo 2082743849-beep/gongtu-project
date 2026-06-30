@@ -13,6 +13,8 @@
     "test:geometry": "node --experimental-loader ./tests/three-absolute-loader.mjs --test ./tests/*.test.mjs"
   },
   "dependencies": {
+    "clipper-lib": "^6.4.2",
+    "earcut": "^3.1.1",
     "three": "0.185.0",
     "three-bvh-csg": "0.0.18",
     "three-mesh-bvh": "0.9.10"
