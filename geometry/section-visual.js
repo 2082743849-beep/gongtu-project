@@ -1,5 +1,18 @@
 import * as THREE from "/node_modules/three/build/three.module.js";
 
+/**
+ * 从法向量构造平面局部 2D 基 (u, v)。
+ * 当 polygon.basis 不可用时作为 fallback。
+ */
+function makeOrthoBasis(normal) {
+  const ref = Math.abs(normal.z) < 0.9
+    ? new THREE.Vector3(0, 0, 1)
+    : new THREE.Vector3(0, 1, 0);
+  const u = ref.clone().cross(normal).normalize();
+  const v = normal.clone().cross(u).normalize();
+  return { u, v };
+}
+
 function emptyGeometry() {
   return new THREE.BufferGeometry();
 }
@@ -67,14 +80,43 @@ export function createSectionVisual({
       point.clone().addScaledVector(polygon.normal, offset)
     ));
     const closedDisplayPoints = [...displayPoints, displayPoints[0].clone()];
-    const indices = [];
-    for (let index = 1; index < displayPoints.length - 1; index += 1) {
-      indices.push(0, index, index + 1);
-    }
 
-    const nextFillGeometry = new THREE.BufferGeometry().setFromPoints(displayPoints);
-    nextFillGeometry.setIndex(indices);
+    // ── 凹多边形三角化：使用 Shape + ShapeGeometry（内置耳切法）──
+    // 扇形三角化 (0,1,2),(0,2,3)... 仅适用于凸多边形；
+    // L 形 / Z 形等凹截面必须用 ear clipping，否则产生跨域错误三角形。
+    let nextFillGeometry;
+    try {
+      const { u, v } = polygon.basis
+        ? polygon.basis
+        : makeOrthoBasis(polygon.normal);
+      // 投影到平面局部 2D 坐标系
+      const pts2d = displayPoints.map((p) => new THREE.Vector2(p.dot(u), p.dot(v)));
+      const shape = new THREE.Shape(pts2d);
+      const shapeGeom = new THREE.ShapeGeometry(shape);
+      // 将 2D 三角化顶点还原回 3D
+      const posAttr = shapeGeom.getAttribute("position");
+      const verts3d = [];
+      for (let i = 0; i < posAttr.count; i++) {
+        const x = posAttr.getX(i);
+        const y = posAttr.getY(i);
+        verts3d.push(
+          u.clone().multiplyScalar(x).add(v.clone().multiplyScalar(y))
+        );
+      }
+      nextFillGeometry = new THREE.BufferGeometry().setFromPoints(verts3d);
+      nextFillGeometry.setIndex(shapeGeom.getIndex());
+      shapeGeom.dispose();
+    } catch {
+      // ShapeGeometry 失败回退（理论上不应触发）
+      const indices = [];
+      for (let index = 1; index < displayPoints.length - 1; index += 1) {
+        indices.push(0, index, index + 1);
+      }
+      nextFillGeometry = new THREE.BufferGeometry().setFromPoints(displayPoints);
+      nextFillGeometry.setIndex(indices);
+    }
     nextFillGeometry.computeVertexNormals();
+
     const nextOutlineGeometry = new THREE.BufferGeometry().setFromPoints(closedDisplayPoints);
     fill.geometry.dispose();
     outline.geometry.dispose();
