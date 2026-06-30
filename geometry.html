@@ -888,12 +888,18 @@
         if (child.isMesh && child.material) {
           const materials = Array.isArray(child.material) ? child.material : [child.material];
           materials.forEach((mat) => {
-            mat.clippingPlanes = [plane];
+            const alreadyBound = mat.clippingPlanes?.length === 1
+              && mat.clippingPlanes[0] === plane;
+            if (!alreadyBound) {
+              mat.clippingPlanes = [plane];
+              mat.needsUpdate = true;
+            }
             mat.clipShadows = true;
-            mat.needsUpdate = true;
           });
         }
       });
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) canvas.dataset.modelClipping = "true";
     }
 
     /* ── 渲染当前模型类型的参数控件 ── */
@@ -977,6 +983,13 @@
       if (cutOutput) cutOutput.textContent = offset.toFixed(2);
       if (!window.geometryLab) return;
       window.geometryLab.cuttingPlane.setPlane(new window.geometryLab.THREE.Vector3(1, 0, 0), offset);
+      const canvas = document.querySelector("#geometryCanvas");
+      const plane = window.geometryLab.cuttingPlane.plane;
+      if (canvas) {
+        canvas.dataset.cuttingPlaneOffset = offset.toFixed(2);
+        canvas.dataset.cuttingPlaneNormal = plane.normal.toArray().join(",");
+        canvas.dataset.cuttingPlaneConstant = String(plane.constant);
+      }
       applyClipping();
     });
 
