@@ -1573,6 +1573,152 @@
       }, 100);
     });
 
+    /* ── 切面自由拖拽交互 ── */
+    const T = window.geometryLab?.THREE;
+    const _planeRaycaster = new (T || THREE).Raycaster();
+    let _isDraggingPlane = false;
+    let _dragMode = null; // 'slide' | 'rotate'
+    let _dragStartPointer = { x: 0, y: 0 };
+    let _dragStartOffset = 0; // 初始 plane constant
+    let _dragStartHAngle = 0;
+    let _dragStartVAngle = 0;
+
+    function getCanvas() {
+      return document.getElementById("geometryCanvas");
+    }
+
+    // 检测鼠标是否悬停在切面视觉体上 → 显示 grab 光标
+    function updatePlaneCursor(e) {
+      if (!window.geometryLab || !T) return;
+      const canvas = getCanvas();
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const pointerX = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+      const pointerY = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+      if (pointerX === undefined || pointerY === undefined) return;
+
+      _planeRaycaster.setFromCamera(
+        new T.Vector2(
+          ((pointerX - rect.left) / rect.width) * 2 - 1,
+          -((pointerY - rect.top) / rect.height) * 2 + 1,
+        ),
+        window.geometryLab.camera,
+      );
+
+      const visual = window.geometryLab.cuttingPlane?.visual;
+      if (visual?.visible) {
+        const hits = _planeRaycaster.intersectObject(visual);
+        canvas.style.cursor = hits.length > 0 ? "grab" : "default";
+      }
+    }
+
+    function onCanvasPointerDown(e) {
+      if (!window.geometryLab || !T || cutModeLocked) return;
+      const canvas = getCanvas();
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const px = e.clientX;
+      const py = e.clientY;
+
+      _planeRaycaster.setFromCamera(
+        new T.Vector2(
+          ((px - rect.left) / rect.width) * 2 - 1,
+          -((py - rect.top) / rect.height) * 2 + 1,
+        ),
+        window.geometryLab.camera,
+      );
+
+      const visual = window.geometryLab.cuttingPlane?.visual;
+      if (!visual?.visible) return;
+
+      const hits = _planeRaycaster.intersectObject(visual);
+      if (hits.length === 0) return;
+
+      // 命中切面 → 开始拖拽
+      _isDraggingPlane = true;
+      _dragMode = e.shiftKey ? "rotate" : "slide";
+      _dragStartPointer = { x: px, y: py };
+      _dragStartOffset = window.geometryLab.cuttingPlane.plane.constant;
+      _dragStartHAngle = hTiltSlider ? parseFloat(hTiltSlider.value) : 0;
+      _dragStartVAngle = vTiltSlider ? parseFloat(vTiltSlider.value) : 0;
+
+      canvas.style.cursor = _dragMode === "slide" ? "grabbing" : "ew-resize";
+      canvas.setPointerCapture(e.pointerId);
+
+      // 暂停 OrbitControls 避免冲突
+      if (window.geometryLab.controls) {
+        window.geometryLab.controls.enabled = false;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function onCanvasPointerMove(e) {
+      if (!_isDraggingPlane || !window.geometryLab) return;
+      e.preventDefault();
+
+      const dx = e.clientX - _dragStartPointer.x;
+      const dy = e.clientY - _dragStartPointer.y;
+
+      if (_dragMode === "slide") {
+        // 拖拽沿法线滑动：用 Y 轴位移近似（法线大致朝上）
+        const sensitivity = 0.02; // px → 世界单位
+        const newOffset = _dragStartOffset + dy * sensitivity;
+
+        // 同步到位置滑块并触发更新
+        if (cutSlider) {
+          cutSlider.value = String(+newOffset.toFixed(4));
+          if (cutOutput) cutOutput.textContent = newOffset.toFixed(2);
+          updateCuttingPlane();
+        }
+      } else if (_dragMode === "rotate") {
+        // Shift+拖拽旋转：水平移动→水平倾角，垂直移动→垂直倾角
+        const rotSensitivity = 0.15; // px → 度
+
+        const newHA = Math.max(-89, Math.min(89, _dragStartHAngle + dx * rotSensitivity));
+        const newVA = Math.max(-89, Math.min(89, _dragStartVAngle + dy * rotSensitivity));
+
+        if (hTiltSlider) {
+          hTiltSlider.value = String(+newHA.toFixed(2));
+          if (hTiltOutput) hTiltOutput.textContent = newHA.toFixed(1) + "\u00B0";
+        }
+        if (vTiltSlider) {
+          vTiltSlider.value = String(+newVA.toFixed(2));
+          if (vTiltOutput) vTiltOutput.textContent = newVA.toFixed(1) + "\u00B0";
+        }
+        updateCuttingPlane();
+      }
+    }
+
+    function onCanvasPointerUp(e) {
+      if (!_isDraggingPlane) return;
+      _isDraggingPlane = false;
+
+      const canvas = getCanvas();
+      if (canvas) {
+        canvas.style.cursor = "default";
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+
+      // 恢复 OrbitControls
+      if (window.geometryLab?.controls) {
+        window.geometryLab.controls.enabled = true;
+      }
+    }
+
+    // 绑定事件（使用 capture 阶段确保优先于 OrbitControls）
+    const canvasEl = getCanvas();
+    if (canvasEl) {
+      canvasEl.addEventListener("pointermove", updatePlaneCursor, { passive: true });
+      canvasEl.addEventListener("pointerdown", onCanvasPointerDown, true);
+      document.addEventListener("pointermove", onCanvasPointerMove, { passive: false });
+      document.addEventListener("pointerup", onCanvasPointerUp);
+      document.addEventListener("pointercancel", onCanvasPointerUp);
+    }
+
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
     function applyHashModel() {
       const hash = window.location.hash?.replace("#", "");

@@ -99,11 +99,16 @@ ux-freeplane 分支在两个提交中：
   ├── dadfbd2 docs: CUT-FIX-006A Agent 执行报告
   │     改动: doc/CUT_FIX_006A_AGENT_REPORT.md (+139)
   │
-  └── 00acfe8 feat: 凹形截面多边形排序包装层（不修改冻结文件）← HEAD
+  └── 00acfe8 feat: 凹形截面多边形排序包装层（不修改冻结文件）
         改动: geometry/section-polygon-order.js (+210, 新文件),
              geometry.html (+1/-1, 仅改 import 来源)
         4个禁止文件: 全部未动 ✅
-```
+
+  └── bd34051 fix: 凹形多边形索引追踪 + 切面自由拖拽交互 ← 最新 HEAD
+        改动: geometry/section-polygon-order.js (重写，索引追踪+缓存),
+             geometry.html (+146, 新增自由拖拽交互)
+        4个禁止文件: 全部未动 ✅
+        测试: 367/367 pass
 
 ### 每次提交的详细变更
 
@@ -121,7 +126,7 @@ ux-freeplane 分支在两个提交中：
 |------|------|------|------|
 | `doc/CUT_FIX_006A_AGENT_REPORT.md` | 新建 | +139 | 完整分支关系 + 执行记录 + 风险评估 |
 
-#### 第 3 次提交 `00acfe8` — 凹形截面修复包装层（HEAD）
+#### 第 3 次提交 `00acfe8` — 凹形截面修复包装层
 | 文件 | 操作 | 行数 | 说明 |
 |------|------|------|------|
 | `geometry/section-polygon-order.js` | 新建 | +210 | 包装层：透传冻结文件函数 + traceConcavePolygon 凹形排序 |
@@ -130,6 +135,16 @@ ux-freeplane 分支在两个提交中：
 | `geometry/cutting-plane.js` | **未动** ✅ | 0 | 冻结安全 |
 | `geometry/section-mode.js` | **未动** ✅ | 0 | 冻结安全 |
 | `geometry/cutaway-visual.js` | **未动** ✅ | 0 | 冻结安全 |
+
+#### 第 4 次提交 `bd34051` — 凹形多边形索引追踪 + 切面自由拖拽（最新 HEAD）
+| 文件 | 操作 | 行数 | 说明 |
+|------|------|------|------|
+| `geometry/section-polygon-order.js` | 重写 | -49/+112 | 索引版 traceConcavePolygonIndices 替代坐标匹配；结果缓存消除屏闪 |
+| `geometry.html` | 修改 | +146 | 切面自由拖拽交互：pointerdown/move/up、raycast 命中检测、滑块同步、OrbitControls 暂停 |
+| `geometry/plane-intersections.js` | **未动** ✅ | 0 | 冻结安全 |
+| 其他冻结文件 | **未动** ✅ | 0 | 全部安全 |
+
+**测试: 367/367 pass, 0 fail**
 
 ### 包装层设计原理
 
