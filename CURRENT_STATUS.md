@@ -1,54 +1,45 @@
 # 当前开发状态
 
-更新时间：2026-06-30
-当前冻结基线分支：`feature/spatial-geometry-cutfix-plan`
-当前冻结基线标签：`section-engine-v2-plan-v1`
+更新时间：2026-07-01
+当前分支：`feature/spatial-geometry-cutfix-plan`
+冻结基线标签：`section-engine-v2-plan-v1`
 当前里程碑：M2 截面引擎 V2 纠偏
 
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：SEC2-000
-- 任务：`docs: 重构凹截面算法任务链`
+- 编号：SEC2-001
+- 任务：`test: 建立截面引擎黄金样例`
 
 ## 刚刚完成了什么
 
-1. 阅读 CUT-FIX-006A 的完整交接，确认 L 形错误源于丢失轮廓拓扑，不是 Earcut 本身。
-2. 查看桌面参考图，提取凹截面、贴合、多轮廓和连续更新的功能标准，不采用竞品 UI。
-3. 将失败实验提交冻结为 `cutfix006a-experimental-do-not-merge-v1`，禁止合并。
-4. 选择“三角面切片 → 线段归一化 → 邻接图轮廓 → 拓扑三角化”的 V2 路线。
-5. 拆成 SEC2-001 至 SEC2-009；算法、渲染、集成和连续性测试不再混在一个任务。
-6. 另拆 UX2-001 至 UX2-003，滚轮与布局可在不碰算法文件的情况下独立派发。
+建立 10 个不依赖生产截面算法的黄金样例，覆盖立方体水平/斜切、圆柱水平切、
+18 方块三阶阶梯、L 形、折线凹形、两个不相连区域，以及擦顶点、过顶点和共面输入。
+答案来自解析几何、鞋带公式和单位方块并集。
 
 ## 本任务修改文件
 
-- `doc/SECTION_ENGINE_V2_PLAN.md`
-- 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+- `tests/fixtures/section-v2-fixtures.mjs`
+- `tests/section-v2-fixtures.test.mjs`
+- 审计文件：`TASKS.md`、`CURRENT_STATUS.md`
 
 ## 验收记录
 
-- 稳定基线保持在 `feature/spatial-geometry-cutfix-plan`，未合并失败实验。
-- 失败实验分支存在 10 个试错提交及未跟踪 `HANDOVER.md`，只作留档。
-- 远端干净阶梯入口候选 `9816902` 暂不合并，后续在 SEC2-007 选择性复用。
-- 每项最多 3 个交付文件；依赖任务必须串行，UX 可与底层算法并行。
+- `node --test tests/section-v2-fixtures.test.mjs`：6/6 通过。
+- 圆柱采用固定 16 边网格面积，不以解析圆面积替代。
+- `git diff --check`：通过。
 
 ## 提交与远端
 
-- 提交：本文件所在提交，信息为 `docs: 重构凹截面算法任务链`
-- 推送目标：`origin/feature/spatial-geometry-cutfix-plan`
+- 提交：本文件所在提交，信息为 `test: 建立截面引擎黄金样例`
+- 推送状态：等待协调完成并统一推送。
 
 ## 下一步
 
-先派发 SEC2-001：建立独立黄金样例，不修改业务算法。也可并行派发 UX2-001，
-但两个 Agent 必须使用不同分支和 worktree。
+SEC2-002 可从本提交开始：只实现单三角面与平面的规范化交线段。UX2-001 可独立整合。
 
 ## 已知风险
 
-- 凹截面核心尚未实现，当前页面的阶梯斜切结果不可信。
-- 切面擦边时仍可能闪烁。
-- 3D 视图滚轮会劫持页面滚动。
-
-## 纪律声明
-
+- 黄金样例尚未覆盖孔洞、沿整条棱擦切和倾斜圆柱。
+- 凹截面 V2 算法尚未实现，生产页面仍使用旧路径。
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
-- SEC2 依赖任务不得跳序；UX2-001 可独立并行。
