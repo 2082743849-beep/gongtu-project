@@ -418,3 +418,14 @@
 - 录屏绝对路径：`/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/page@0b05fadd5523f8eae5f716501836d9ec.webm`
 - CI 状态：当前分支未触发（隔离 worktree 推送，非主功能分支），明确写"未触发"
 - 下一步：等待原 Agent 最终验收后执行 amend + force-with-lease
+## CUT-FIX-003A docs: 冻结 CUT-FIX-004 接力基线
+
+- 日期：2026-06-30
+- 执行者：主协调 Agent
+- 分支：`docs/spatial-geometry-cutfix004-handoff`
+- 交付：`doc/CUT_FIX_004_HANDOFF.md`
+- 基线动作：将 CUT-FIX-003 快进合入 `feature/spatial-geometry-cutfix-plan`
+- 冻结标签：`cutfix004-handoff-v1`
+- 授权边界：新 Agent 只能执行 CUT-FIX-004，必须另开独立分支和 worktree
+- 禁止事项：不得修改基线/main/dev、不得合并、不得开始 CUT-FIX-005
+- 下一步：等待新 Agent 返回分支、提交、测试和视觉证据，由主协调 Agent 回审

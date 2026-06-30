@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 54 项 |
+| 已完成 | 55 项 |
 | 进行中 | 0 项 |
 | 下一项 | CUT-FIX-004 缩小并弱化切割平面视觉 |
-| 功能分支 | `feature/spatial-geometry-cutfix003` |
+| 冻结基线 | `cutfix004-handoff-v1` |
 
 ## 里程碑
 
@@ -311,6 +311,12 @@
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：模型保持完整或半透明；只填充真实交集区域；截面蓝色填充与轮廓随平移和倾斜逐帧更新
   - 结果：默认教学模式不裁剪模型、不显示被切侧镜像；真实交集使用蓝色填充和深蓝轮廓；隐藏/透明真实剖开仍可主动切换；285/285 测试及浏览器状态验收通过
+  - 提交：本任务所在提交
+- [x] ● CUT-FIX-003A docs: 冻结 CUT-FIX-004 接力基线
+  - 交付文件：`doc/CUT_FIX_004_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：新 Agent 的唯一基线、独立分支、受保护范围、文件预算、测试证据和停止点完整
+  - 结果：已将 CUT-FIX-003 纳入纠偏基线，并建立不可漂移标签 `cutfix004-handoff-v1`；新 Agent 只能另开 `feature/spatial-geometry-cutfix004-agent`
   - 提交：本任务所在提交
 - [ ] ○ CUT-FIX-004 feat: 缩小并弱化切割平面视觉
   - 验收：数学平面保持无限；视觉载体限制在模型包围盒附近且不遮挡截面；允许隐藏视觉刀面
