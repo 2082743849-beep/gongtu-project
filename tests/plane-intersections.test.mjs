@@ -10,6 +10,7 @@ import {
   orderAndCloseSection,
 } from "../geometry/plane-intersections.js";
 import { createSectionVisual } from "../geometry/section-visual.js";
+import { createCutawayVisual } from "../geometry/cutaway-visual.js";
 
 const X_ZERO_PLANE = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
 
@@ -240,5 +241,44 @@ test("section visual clears stale geometry for degenerate input", () => {
   assert.equal(visual.group.visible, false);
   assert.equal(visual.group.userData.vertexCount, 0);
   assert.equal(visual.fill.geometry.getAttribute("position"), undefined);
+  visual.dispose();
+});
+
+test("cutaway visual uses shared geometry and independent reverse-clipped materials", () => {
+  const source = createCube(1);
+  const sourceSolid = source.children.find((child) => child.isMesh);
+  const visual = createCutawayVisual({ opacity: 0.18 });
+  const plane = new THREE.Plane(new THREE.Vector3(1, 0, 0), -0.25);
+
+  visual.setSource(source);
+  visual.setPlane(plane);
+  visual.setMode("transparent");
+  const ghostSolid = visual.ghost.children.find((child) => child.isMesh);
+
+  assert.equal(visual.group.visible, true);
+  assert.equal(ghostSolid.geometry, sourceSolid.geometry);
+  assert.notEqual(ghostSolid.material, sourceSolid.material);
+  assert.equal(ghostSolid.material.opacity, 0.18);
+  assert.equal(ghostSolid.material.depthWrite, false);
+  assert.equal(ghostSolid.material.clippingPlanes[0], visual.reversePlane);
+  assert.ok(visual.reversePlane.normal.equals(new THREE.Vector3(-1, 0, 0)));
+  assert.equal(visual.reversePlane.constant, 0.25);
+
+  visual.setMode("hidden");
+  assert.equal(visual.group.visible, false);
+  visual.dispose();
+});
+
+test("cutaway visual updates the shared reverse plane without rebuilding its ghost", () => {
+  const source = createCube(1);
+  const visual = createCutawayVisual();
+  visual.setSource(source);
+  const originalGhost = visual.ghost;
+  visual.setPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.4));
+
+  assert.equal(visual.ghost, originalGhost);
+  assert.ok(visual.reversePlane.normal.equals(new THREE.Vector3(0, -1, 0)));
+  assert.equal(visual.reversePlane.constant, 0.4);
+  assert.throws(() => visual.setMode("unsupported"), /unsupported cutaway mode/);
   visual.dispose();
 });

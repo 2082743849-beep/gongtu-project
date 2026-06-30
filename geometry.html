@@ -501,6 +501,10 @@
       line-height: 1.65;
     }
 
+    .cutaway-toggle {
+      margin: 12px 0 16px;
+    }
+
     .locked-point {
       margin-bottom: 10px;
     }
@@ -738,6 +742,10 @@
           <button class="mode-button" type="button" aria-pressed="true">自由切割 · 连续拖动与倾斜</button>
           <button class="mode-button" type="button" aria-pressed="false">题目切割 · 由 A、B、C 三点锁定</button>
         </div>
+        <div class="section-placeholder cutaway-toggle" aria-label="被切侧显示">
+          <button class="mode-button" type="button" data-cutaway-mode="hidden" aria-pressed="true">隐藏被切侧</button>
+          <button class="mode-button" type="button" data-cutaway-mode="transparent" aria-pressed="false">透明显示被切侧</button>
+        </div>
         <div id="cut-free-inputs">
           <label class="field">
             <span class="field-row"><span>平面位置</span><output>0.00</output></span>
@@ -804,6 +812,7 @@
       orderAndCloseSection,
     } from "/geometry/plane-intersections.js";
     import { createSectionVisual } from "/geometry/section-visual.js";
+    import { createCutawayVisual } from "/geometry/cutaway-visual.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -857,6 +866,9 @@
     const cutLockedInputs = document.getElementById("cut-locked-inputs");
     const cutLockStatus = document.getElementById("cut-lock-status");
     const cutModeButtons = document.querySelectorAll('[aria-label="切割模式"] .mode-button');
+    const cutawayModeButtons = document.querySelectorAll(
+      '[aria-label="被切侧显示"] [data-cutaway-mode]',
+    );
     let cutModeLocked = false;
 
     /* ── 状态 ── */
@@ -866,6 +878,8 @@
     let currentColor = colorInput?.value || "#f5f1e8";
     let paramValues = {};
     let sectionVisual = null;
+    let cutawayVisual = null;
+    let cutawayMode = "hidden";
 
     /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
     function initParamValues() {
@@ -889,6 +903,7 @@
     function removeActiveModel() {
       if (activeModel && window.geometryLab) {
         const { scene } = window.geometryLab;
+        cutawayVisual?.clear();
         scene.remove(activeModel);
         disposeModel(activeModel);
         activeModel = null;
@@ -983,7 +998,29 @@
       });
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) canvas.dataset.modelClipping = "true";
+      syncCutawayVisual();
       updateSectionVisual();
+    }
+
+    function ensureCutawayVisual() {
+      if (!cutawayVisual && window.geometryLab) {
+        cutawayVisual = createCutawayVisual();
+        window.geometryLab.scene.add(cutawayVisual.group);
+      }
+      return cutawayVisual;
+    }
+
+    function syncCutawayVisual() {
+      if (!activeModel || !window.geometryLab) return;
+      const visual = ensureCutawayVisual();
+      visual.setSource(activeModel);
+      visual.setPlane(window.geometryLab.cuttingPlane.plane);
+      visual.setMode(cutawayMode);
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cutawayMode = cutawayMode;
+        canvas.dataset.cutawayVisible = String(visual.group.visible);
+      }
     }
 
     function ensureSectionVisual() {
@@ -1036,6 +1073,7 @@
     function clearInvalidLockedPlane(message, errorCode) {
       if (!window.geometryLab) return;
       window.geometryLab.cuttingPlane.visual.visible = false;
+      cutawayVisual?.clear();
       activeModel?.traverse((child) => {
         if (!child.isMesh || !child.material) return;
         const materials = Array.isArray(child.material) ? child.material : [child.material];
@@ -1161,6 +1199,16 @@
     cutSlider?.addEventListener("input", updateCuttingPlane);
     hTiltSlider?.addEventListener("input", updateCuttingPlane);
     vTiltSlider?.addEventListener("input", updateCuttingPlane);
+
+    cutawayModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        cutawayMode = button.dataset.cutawayMode;
+        cutawayModeButtons.forEach((candidate) => {
+          candidate.setAttribute("aria-pressed", String(candidate === button));
+        });
+        syncCutawayVisual();
+      });
+    });
 
     /* ── 切割模式切换：自由切割 ↔ 题目三点锁定 ── */
     cutModeButtons.forEach((btn) => {
