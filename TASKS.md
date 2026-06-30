@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 55 项 |
+| 已完成 | 57 项 |
 | 进行中 | 0 项 |
-| 下一项 | 等待主协调 Agent 回审 |
-| 冻结基线 | `cutfix004-handoff-v1` |
+| 下一项 | CUT-FIX-005 保留真实剖开辅助模式 |
+| 冻结基线 | `cutfix005-handoff-v1` |
 
 ## 里程碑
 
@@ -331,7 +331,13 @@
     - 添加"显示/隐藏视觉刀面"checkbox 控件，所有恢复路径（自由切割、题目三点锁定、模式切换）均尊重用户选择；
     - 全量测试 329/329 通过（285 基线 + 44 专项），`git diff --check` 无空白问题；
     - 浏览器验收：5 张 Playwright 截图 + 1 段连续操作录屏，覆盖正方体默认、长方体双轴 45° 倾斜、隐藏刀面、题目模式隐藏保持、非零 offset 中心；
-    - 提交：`24d2e35`，force-with-lease 已推送 `origin/feature/spatial-geometry-cutfix004-agent`
+    - 最终提交：`8ae9ed1`，已快进合入并推送 `origin/feature/spatial-geometry-cutfix-plan`
+- [x] ● CUT-FIX-004A docs: 冻结 CUT-FIX-005 接力基线
+  - 交付文件：`doc/CUT_FIX_005_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：唯一基线、隔离分支、保护范围、文件预算、测试与停止点完整
+  - 结果：CUT-FIX-004 已纳入纠偏基线；新 Agent 只能从 `cutfix005-handoff-v1` 开独立分支执行 CUT-FIX-005
+  - 提交：本任务所在提交
 - [ ] ○ CUT-FIX-005 feat: 保留真实剖开辅助模式
   - 验收：用户主动切换后才隐藏或透明显示被切侧；切回教学模式时完整模型与蓝色截面恢复
 - [ ] ○ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面

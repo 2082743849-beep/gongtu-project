@@ -420,6 +420,8 @@
 - 下一步：等待原 Agent 最终验收后执行 amend + force-with-lease
 ## CUT-FIX-003A docs: 冻结 CUT-FIX-004 接力基线
 
+## 2026-06-30 · 主协调 Agent · CUT-FIX-004A
+
 - 日期：2026-06-30
 - 执行者：主协调 Agent
 - 分支：`docs/spatial-geometry-cutfix004-handoff`
@@ -503,3 +505,12 @@
 - 遗留风险：无
 - 下一步：等待主协调 Agent 最终回审并合并到纠偏基线
 - 明确声明：未合并、未开始 CUT-FIX-005
+- 日期：2026-06-30
+- 执行者：主协调 Agent
+- 任务：`CUT-FIX-004A docs: 冻结 CUT-FIX-005 接力基线`
+- 分支：`docs/spatial-geometry-cutfix005-handoff`
+- 交付：`doc/CUT_FIX_005_HANDOFF.md`
+- 基线：CUT-FIX-004 最终提交 `8ae9ed1`
+- 冻结标签：`cutfix005-handoff-v1`
+- 授权：新 Agent 只能在 `feature/spatial-geometry-cutfix005-agent` 执行 CUT-FIX-005
+- 停止点：推送候选分支后停止，禁止合并或开始 CUT-FIX-006
