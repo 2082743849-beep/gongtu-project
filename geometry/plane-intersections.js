@@ -116,6 +116,102 @@ export function intersectEdgesWithPlane(edges, plane, { epsilon } = {}) {
   return { points, coplanarEdges, hits, epsilon: tolerance };
 }
 
+function polygonBasis(normal) {
+  const reference = Math.abs(normal.z) < 0.9
+    ? new THREE.Vector3(0, 0, 1)
+    : new THREE.Vector3(0, 1, 0);
+  const u = reference.clone().cross(normal).normalize();
+  const v = normal.clone().cross(u).normalize();
+  return { u, v };
+}
+
+function signedProjectedArea(points, u, v) {
+  let twiceArea = 0;
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index];
+    const next = points[(index + 1) % points.length];
+    twiceArea += current.dot(u) * next.dot(v) - next.dot(u) * current.dot(v);
+  }
+  return twiceArea / 2;
+}
+
+/**
+ * 将同一平面上的无序交点按法向量观察方向逆时针排序，并追加首点形成闭环。
+ *
+ * 退化输入不会伪造成多边形，而是返回 status="degenerate" 和明确 reason。
+ */
+export function orderAndCloseSection(points, plane, { epsilon } = {}) {
+  if (!Array.isArray(points)) {
+    throw new TypeError("points must be an array");
+  }
+  const tolerance = safeEpsilon(epsilon);
+  const safePlane = normalizedPlane(plane);
+  const uniquePoints = [];
+
+  points.forEach((point) => {
+    if (!point?.isVector3) {
+      throw new TypeError("each point must be a THREE.Vector3");
+    }
+    if (Math.abs(safePlane.distanceToPoint(point)) > tolerance) {
+      throw new RangeError("all section points must lie on the plane");
+    }
+    addUniquePoint(uniquePoints, point, tolerance);
+  });
+
+  if (uniquePoints.length < 3) {
+    return {
+      status: "degenerate",
+      reason: "insufficient-points",
+      points: uniquePoints,
+      closedPoints: [],
+      epsilon: tolerance,
+    };
+  }
+
+  const centroid = uniquePoints
+    .reduce((sum, point) => sum.add(point), new THREE.Vector3())
+    .multiplyScalar(1 / uniquePoints.length);
+  const { u, v } = polygonBasis(safePlane.normal);
+  const orderedPoints = uniquePoints
+    .map((point) => ({
+      point,
+      angle: Math.atan2(
+        point.clone().sub(centroid).dot(v),
+        point.clone().sub(centroid).dot(u),
+      ),
+    }))
+    .sort((left, right) => left.angle - right.angle)
+    .map(({ point }) => point.clone());
+  const signedArea = signedProjectedArea(orderedPoints, u, v);
+
+  if (Math.abs(signedArea) <= tolerance * tolerance) {
+    return {
+      status: "degenerate",
+      reason: "collinear-points",
+      points: orderedPoints,
+      closedPoints: [],
+      centroid,
+      normal: safePlane.normal.clone(),
+      epsilon: tolerance,
+    };
+  }
+
+  if (signedArea < 0) {
+    orderedPoints.reverse();
+  }
+
+  return {
+    status: "polygon",
+    points: orderedPoints,
+    closedPoints: [...orderedPoints.map((point) => point.clone()), orderedPoints[0].clone()],
+    centroid,
+    normal: safePlane.normal.clone(),
+    signedArea: Math.abs(signedArea),
+    basis: { u, v },
+    epsilon: tolerance,
+  };
+}
+
 /**
  * 从模型中的 LineSegments 棱线提取世界坐标边。
  * 默认只读取名称以 Wireframe 结尾的对象，避免把坐标轴等辅助线算入模型。

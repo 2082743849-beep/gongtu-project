@@ -7,6 +7,7 @@ import {
   collectWorldEdges,
   intersectEdgesWithPlane,
   intersectSegmentWithPlane,
+  orderAndCloseSection,
 } from "../geometry/plane-intersections.js";
 
 const X_ZERO_PLANE = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
@@ -120,4 +121,87 @@ test("zero-normal plane and malformed edges fail explicitly", () => {
     () => intersectEdgesWithPlane([[vector(0), null]], X_ZERO_PLANE),
     /start and end/,
   );
+});
+
+test("unordered square points become a consistently oriented closed polygon", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const result = orderAndCloseSection(
+    [
+      vector(1, 1, 0),
+      vector(-1, -1, 0),
+      vector(1, -1, 0),
+      vector(-1, 1, 0),
+    ],
+    plane,
+  );
+
+  assert.equal(result.status, "polygon");
+  assert.equal(result.points.length, 4);
+  assert.equal(result.closedPoints.length, 5);
+  assert.deepEqual(
+    roundedPoint(result.closedPoints[0]),
+    roundedPoint(result.closedPoints.at(-1)),
+  );
+  assert.equal(result.signedArea, 4);
+
+  const orientation = new THREE.Vector3()
+    .subVectors(result.points[1], result.points[0])
+    .cross(new THREE.Vector3().subVectors(result.points[2], result.points[1]));
+  assert.ok(orientation.dot(result.normal) > 0);
+});
+
+test("section ordering removes duplicate points within tolerance", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const result = orderAndCloseSection(
+    [
+      vector(0, 0, 0),
+      vector(1, 0, 0),
+      vector(0, 1, 0),
+      vector(5e-8, 0, 0),
+    ],
+    plane,
+    { epsilon: 1e-7 },
+  );
+  assert.equal(result.status, "polygon");
+  assert.equal(result.points.length, 3);
+});
+
+test("insufficient and collinear section points remain degenerate", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  const insufficient = orderAndCloseSection(
+    [vector(0, 0, 0), vector(1, 0, 0)],
+    plane,
+  );
+  assert.equal(insufficient.status, "degenerate");
+  assert.equal(insufficient.reason, "insufficient-points");
+
+  const collinear = orderAndCloseSection(
+    [vector(-1, 0, 0), vector(0, 0, 0), vector(1, 0, 0)],
+    plane,
+  );
+  assert.equal(collinear.status, "degenerate");
+  assert.equal(collinear.reason, "collinear-points");
+});
+
+test("off-plane points fail rather than being silently projected", () => {
+  const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+  assert.throws(
+    () => orderAndCloseSection(
+      [vector(0, 0, 0), vector(1, 0, 0), vector(0, 1, 0.01)],
+      plane,
+    ),
+    /must lie on the plane/,
+  );
+});
+
+test("diagonal cube section closes as a six-vertex polygon", () => {
+  const cube = createCube(2);
+  const plane = new THREE.Plane(new THREE.Vector3(1, 1, 1).normalize(), 0);
+  const intersections = intersectEdgesWithPlane(collectWorldEdges(cube), plane);
+  const polygon = orderAndCloseSection(intersections.points, plane);
+
+  assert.equal(polygon.status, "polygon");
+  assert.equal(polygon.points.length, 6);
+  assert.equal(polygon.closedPoints.length, 7);
+  assert.ok(Math.abs(polygon.signedArea - 3 * Math.sqrt(3)) < 1e-9);
 });

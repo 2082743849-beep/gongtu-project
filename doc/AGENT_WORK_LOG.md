@@ -176,6 +176,19 @@
 - 遗留风险：交点尚未排序闭合，不能直接当作截面多边形
 - 建议下一任务：`CUT-006 feat: 建立截面交点排序和闭合`
 
+## 2026-06-30 · Agent 1 · CUT-006
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`5c3e137`
+- 完成任务：`feat: 建立截面交点排序和闭合`
+- 修改的交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`
+- 执行的测试：乱序、方向、去重、少点、共线、离面和正方体六边形端到端样例
+- 测试结果：新增 5 项算法测试；完整测试 136/136 通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：闭合多边形尚未渲染为切口填充和高亮轮廓
+- 建议下一任务：`CUT-007 feat: 在模型切口实时填充与高亮截面`
+
 ## 2026-06-30 · Agent 1 · INT-CUT004-001
 
 - 分支：`feature/spatial-geometry-lab`
