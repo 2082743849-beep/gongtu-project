@@ -8,10 +8,10 @@
 | 项目 | 当前结果 |
 |---|---|
 | 当前阶段 | M2 实时截面教学体验纠偏 |
-| 已完成 | 57 项 |
+| 已完成 | 59 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-006 test: 验证基础与阶梯组合体连续截面 |
-| 冻结基线 | `cutfix005-handoff-v1` |
+| 下一项 | CUT-FIX-006A 建立阶梯组合体验收入口 |
+| 冻结基线 | `cutfix006a-handoff-v1` |
 
 ## 里程碑
 
@@ -352,6 +352,14 @@
     - 全量测试 358/358 通过（329 基线 + 29 专项），`git diff --check` 无空白问题
     - 浏览器验收：4 张 Playwright 截图 + 1 张录屏终帧（headless Chromium）
     - **未发现真实缺陷**——代码接线已正确，无需修改 `geometry.html` 或 `geometry/section-mode.js`
+- [x] ● CUT-FIX-005A docs: 冻结 CUT-FIX-006A 接力基线
+  - 交付文件：`doc/CUT_FIX_006A_HANDOFF.md`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
+  - 验收：先建立阶梯组合体验收入口，再执行连续截面测试；隔离分支、保护范围和停止点完整
+  - 结果：新 Agent 只能从 `cutfix006a-handoff-v1` 开独立分支执行 CUT-FIX-006A
+  - 提交：本任务所在提交
+- [ ] ○ CUT-FIX-006A feat: 建立阶梯组合体验收入口
+  - 验收：三阶18方块模型复用 BlockArray/createBlockAssembly；页面可选择并接入现有实时截面流程
 - [ ] ○ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面
   - 验收：正方体、圆柱、阶梯组合体覆盖进入、穿过、离开，以及平移、旋转和两轴倾斜
 - [ ] ○ CUT-FIX-007 test: 录制实时截面体验验收视频

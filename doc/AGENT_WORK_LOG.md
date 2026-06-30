@@ -546,3 +546,12 @@
 - 已推送远端：提交后立即推送
 - 遗留风险：无
 - 明确声明：未合并、未开始 CUT-FIX-006
+## 2026-06-30 · 主协调 Agent · CUT-FIX-005A
+
+- 任务：`docs: 冻结 CUT-FIX-006A 接力基线`
+- CUT-FIX-005 回审：专项 29/29 通过，提交 `3477694` 已快进合入纠偏基线
+- 拆分原因：当前页面没有阶梯组合体入口，不能把入口开发隐藏在 CUT-FIX-006 测试任务中
+- 交付：`doc/CUT_FIX_006A_HANDOFF.md`
+- 冻结标签：`cutfix006a-handoff-v1`
+- 授权分支：`feature/spatial-geometry-cutfix006a-agent`
+- 停止点：完成入口与冒烟证据后停止，不开始 CUT-FIX-006
