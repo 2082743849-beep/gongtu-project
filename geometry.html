@@ -412,6 +412,58 @@
       font-size: 14px;
     }
 
+    .section-metrics {
+      margin-top: 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.72);
+    }
+
+    .section-metrics h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .section-metrics-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .section-metrics-summary span {
+      min-width: 0;
+      padding: 8px 4px;
+      border-radius: 9px;
+      text-align: center;
+      background: var(--paper);
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .section-metrics-summary strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--ink);
+      font: 700 12px/1.2 ui-monospace, monospace;
+    }
+
+    .section-vertices {
+      max-height: 132px;
+      margin: 10px 0 0;
+      padding-left: 26px;
+      overflow: auto;
+      color: var(--ink-soft);
+      font: 11px/1.7 ui-monospace, monospace;
+    }
+
+    .section-empty {
+      margin: 10px 0 0;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+
     .axis-legend {
       position: absolute;
       right: 16px;
@@ -831,6 +883,12 @@
           <p class="cut-lock-status" id="cut-lock-status"></p>
         </div>
         <p class="cut-note">切面结果不需要另开页面：刀移动到哪里，模型就实时剖到哪里；被切开的封口会直接在三维场景中高亮。</p>
+        <div class="section-metrics" id="sectionMetrics" aria-live="polite">
+          <h3>截面信息</h3>
+          <div id="sectionMetricsContent">
+            <p class="section-empty">暂无有效截面</p>
+          </div>
+        </div>
       </section>
     </aside>
   </main>
@@ -857,6 +915,10 @@
     import { createSectionVisual } from "/geometry/section-visual.js";
     import { createCutawayVisual } from "/geometry/cutaway-visual.js";
     import { projectSectionTo2D, svgPointString } from "/geometry/section-2d.js";
+    import {
+      calculateSectionMetrics,
+      formatSectionNumber,
+    } from "/geometry/section-metrics.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -919,6 +981,7 @@
     const section2dCard = document.getElementById("section2dCard");
     const section2dPolygon = document.getElementById("section2dPolygon");
     const section2dMeta = document.getElementById("section2dMeta");
+    const sectionMetricsContent = document.getElementById("sectionMetricsContent");
     let cutModeLocked = false;
 
     /* ── 状态 ── */
@@ -1093,6 +1156,34 @@
         canvas.dataset.sectionArea = "0";
       }
       renderSection2D();
+      renderSectionMetrics();
+    }
+
+    function renderSectionMetrics() {
+      const metrics = calculateSectionMetrics(latestSectionPolygon);
+      if (sectionMetricsContent) {
+        if (metrics.status === "empty") {
+          sectionMetricsContent.innerHTML = '<p class="section-empty">暂无有效截面</p>';
+        } else {
+          const vertices = metrics.vertices.map((point, index) => (
+            `<li>P${index + 1} (${formatSectionNumber(point.x)}, `
+            + `${formatSectionNumber(point.y)}, ${formatSectionNumber(point.z)})</li>`
+          )).join("");
+          sectionMetricsContent.innerHTML = `
+            <div class="section-metrics-summary">
+              <span>边数<strong>${metrics.edgeCount}</strong></span>
+              <span>面积<strong>${formatSectionNumber(metrics.area)}</strong></span>
+              <span>周长<strong>${formatSectionNumber(metrics.perimeter)}</strong></span>
+            </div>
+            <ol class="section-vertices" aria-label="截面有序三维顶点">${vertices}</ol>`;
+        }
+      }
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.sectionMetricsStatus = metrics.status;
+        canvas.dataset.sectionPerimeter = String(metrics.perimeter);
+        canvas.dataset.sectionVertices = JSON.stringify(metrics.vertices);
+      }
     }
 
     function renderSection2D() {
@@ -1135,6 +1226,7 @@
         latestSectionPolygon = polygon;
         ensureSectionVisual().update(polygon);
         renderSection2D();
+        renderSectionMetrics();
         const canvas = document.querySelector("#geometryCanvas");
         if (canvas) {
           canvas.dataset.sectionStatus = "visible";

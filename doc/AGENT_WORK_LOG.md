@@ -296,3 +296,16 @@
 - 已推送远端：提交后立即推送
 - 遗留风险：接力 Agent 的 CUT-002 实现尚未开始，完成后必须由 Agent 1 增量回审
 - 建议下一任务：`CUT-002 feat: 拖动切面时实时剖开模型`
+
+## 2026-06-30 · Agent 2 · CUT-010
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`db65bd2`
+- 完成任务：`feat: 建立截面边数面积与顶点信息`
+- 修改的交付文件：`geometry/section-metrics.js`（新增）、`geometry.html`、`tests/section-metrics.test.mjs`（新增）
+- 执行的测试：`node --check` 语法检查、`npm run deps:check`、`npm run test:geometry`（146 项）、`git diff --check`
+- 测试结果：146/146 全部通过，依赖树完整，无空白错误；浏览器验收：切面倾斜实时更新、离模空状态、窄屏无横向溢出
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：headless Chromium 偶发 WebGL shader 环境错误（非业务算法故障）；顶点列表不支持选中/复制
+- 建议下一任务：`CUT-011 test: 验证立方体典型切面`
