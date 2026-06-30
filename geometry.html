@@ -756,6 +756,9 @@
         <button class="model-button" type="button" aria-pressed="false">
           <span>球体</span><span class="model-icon">●</span>
         </button>
+        <button class="model-button" type="button" aria-pressed="false">
+          <span>阶梯组合体</span><span class="model-icon">⏌</span>
+        </button>
       </nav>
     </aside>
 
@@ -914,6 +917,7 @@
     import { createCylinder } from "/geometry/cylinder-generator.js";
     import { createCone } from "/geometry/cone-generator.js";
     import { createSphere } from "/geometry/sphere-generator.js";
+    import { createStaircaseModel } from "/geometry/staircase-fixture.js";
     import {
       collectWorldEdges,
       intersectEdgesWithPlane,
@@ -1100,6 +1104,8 @@
           return createCone(p.radius ?? 0.5, p.height ?? 1, p.segments ?? 32, appearance);
         case "sphere":
           return createSphere(p.radius ?? 0.5, p.widthSegments ?? 32, p.heightSegments ?? 16, appearance);
+        case "staircase":
+          return createStaircaseModel(appearance);
         default:
           return createCube(1, appearance);
       }
@@ -1385,6 +1391,7 @@
           "圆柱": "cylinder",
           "圆锥": "cone",
           "球体": "sphere",
+          "阶梯组合体": "staircase",
         };
         if (!map[label]) return;
         currentType = map[label];

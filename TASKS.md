@@ -10,7 +10,7 @@
 | 当前阶段 | M2 实时截面教学体验纠偏 |
 | 已完成 | 59 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-006A 建立阶梯组合体验收入口 |
+| 下一项 | CUT-FIX-006 验证基础与阶梯组合体连续截面 |
 | 冻结基线 | `cutfix006a-handoff-v1` |
 
 ## 里程碑
@@ -358,8 +358,17 @@
   - 验收：先建立阶梯组合体验收入口，再执行连续截面测试；隔离分支、保护范围和停止点完整
   - 结果：新 Agent 只能从 `cutfix006a-handoff-v1` 开独立分支执行 CUT-FIX-006A
   - 提交：本任务所在提交
-- [ ] ○ CUT-FIX-006A feat: 建立阶梯组合体验收入口
+- [x] ● CUT-FIX-006A feat: 建立阶梯组合体验收入口
+  - 交付文件：`geometry/staircase-fixture.js`、`geometry.html`、`tests/staircase-fixture.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：三阶18方块模型复用 BlockArray/createBlockAssembly；页面可选择并接入现有实时截面流程
+  - 结果：
+    - 新增 `geometry/staircase-fixture.js`：createStaircase3Step() 使用 BlockArray 构建 3 阶 18 方块阶梯（Y=0/1/2 层分别 9/6/3 方块，Z 深度 3），createBlockAssembly 生成外表面合并几何体，居中到原点（偏移 -1.5, -1.5, -1.5），userData.type='staircase'
+    - `geometry.html` 三处触点：import map 引入 staircase-fixture；模型库新增「阶梯组合体」按钮；buildModel 新增 case "staircase" 派发并复用 placeModel 全流程（切面/截面自动接线）
+    - 全量测试 367/367 通过（358 基线 + 9 专项），`git diff --check` 无空白问题
+    - 浏览器验收：Playwright headless Chromium 截图验证——切换后 Canvas 状态 activeModel="staircase"、包围盒 ±1.5（3×3×3 居中原点）、clipping=true、section=visible（蓝色截面自动接线）
+    - 截图：`output/staircase-smoke.png`（380 KB）
+  - 提交：本任务所在提交
 - [ ] ○ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面
   - 验收：正方体、圆柱、阶梯组合体覆盖进入、穿过、离开，以及平移、旋转和两轴倾斜
 - [ ] ○ CUT-FIX-007 test: 录制实时截面体验验收视频
