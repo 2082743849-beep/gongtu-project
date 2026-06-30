@@ -10,7 +10,7 @@
   },
   "scripts": {
     "deps:check": "npm ls --all",
-    "test:geometry": "node --experimental-loader ./tests/three-absolute-loader.mjs --test ./tests/geometry-generators.test.mjs"
+    "test:geometry": "node --experimental-loader ./tests/three-absolute-loader.mjs --test ./tests/*.test.mjs"
   },
   "dependencies": {
     "three": "0.185.0",

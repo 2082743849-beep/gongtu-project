@@ -163,6 +163,19 @@
 - 遗留风险：尚未建立多面体边与平面的确定性交点算法
 - 建议下一任务：`CUT-005 feat: 建立多面体边与平面求交`
 
+## 2026-06-30 · Agent 1 · CUT-005
+
+- 分支：`feature/spatial-geometry-lab`
+- 基线提交：`ca7061b`
+- 完成任务：`feat: 建立多面体边与平面求交`
+- 修改的交付文件：`geometry/plane-intersections.js`、`tests/plane-intersections.test.mjs`、`package.json`
+- 执行的测试：模块语法、线段分支、批量去重、共面边、世界坐标棱线、无效输入和完整前端测试
+- 测试结果：新增 9 项算法测试；完整测试 131/131 通过
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送并等待 CI
+- 遗留风险：交点尚未排序闭合，不能直接当作截面多边形
+- 建议下一任务：`CUT-006 feat: 建立截面交点排序和闭合`
+
 ## 2026-06-30 · Agent 1 · INT-CUT004-001
 
 - 分支：`feature/spatial-geometry-lab`
