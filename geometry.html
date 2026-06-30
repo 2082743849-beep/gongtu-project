@@ -501,6 +501,40 @@
       line-height: 1.65;
     }
 
+    .locked-point {
+      margin-bottom: 10px;
+    }
+    .locked-point .field-row {
+      margin-bottom: 4px;
+    }
+    .point-inputs {
+      display: flex;
+      gap: 8px;
+    }
+    .point-inputs label {
+      display: flex;
+      flex-direction: column;
+      font-size: 11px;
+      color: var(--ink-soft);
+      gap: 2px;
+    }
+    .point-inputs input {
+      width: 64px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 12px;
+      text-align: center;
+    }
+    .cut-lock-status {
+      margin: 8px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--teal);
+    }
+
     .status-chip {
       display: inline-flex;
       align-items: center;
@@ -704,18 +738,47 @@
           <button class="mode-button" type="button" aria-pressed="true">自由切割 · 连续拖动与倾斜</button>
           <button class="mode-button" type="button" aria-pressed="false">题目切割 · 由 A、B、C 三点锁定</button>
         </div>
-        <label class="field">
-          <span class="field-row"><span>平面位置</span><output>0.00</output></span>
-          <input type="range" min="-2" max="2" step="0.01" value="0" aria-label="切割平面位置">
-        </label>
-        <label class="field">
-          <span class="field-row"><span>水平倾角</span><output>0°</output></span>
-          <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面水平倾角">
-        </label>
-        <label class="field">
-          <span class="field-row"><span>垂直倾角</span><output>0°</output></span>
-          <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面垂直倾角">
-        </label>
+        <div id="cut-free-inputs">
+          <label class="field">
+            <span class="field-row"><span>平面位置</span><output>0.00</output></span>
+            <input type="range" min="-2" max="2" step="0.01" value="0" aria-label="切割平面位置">
+          </label>
+          <label class="field">
+            <span class="field-row"><span>水平倾角</span><output>0°</output></span>
+            <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面水平倾角">
+          </label>
+          <label class="field">
+            <span class="field-row"><span>垂直倾角</span><output>0°</output></span>
+            <input type="range" min="-90" max="90" step="1" value="0" aria-label="切割平面垂直倾角">
+          </label>
+        </div>
+        <div id="cut-locked-inputs" style="display:none">
+          <div class="field locked-point">
+            <span class="field-row"><span>A 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="0.5" step="0.01" aria-label="A点X坐标"></label>
+              <label>Y<input type="number" value="-2.0" step="0.01" aria-label="A点Y坐标"></label>
+              <label>Z<input type="number" value="0.0" step="0.01" aria-label="A点Z坐标"></label>
+            </span>
+          </div>
+          <div class="field locked-point">
+            <span class="field-row"><span>B 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="-0.5" step="0.01" aria-label="B点X坐标"></label>
+              <label>Y<input type="number" value="-2.0" step="0.01" aria-label="B点Y坐标"></label>
+              <label>Z<input type="number" value="0.5" step="0.01" aria-label="B点Z坐标"></label>
+            </span>
+          </div>
+          <div class="field locked-point">
+            <span class="field-row"><span>C 点坐标</span></span>
+            <span class="point-inputs">
+              <label>X<input type="number" value="-0.5" step="0.01" aria-label="C点X坐标"></label>
+              <label>Y<input type="number" value="-1.0" step="0.01" aria-label="C点Y坐标"></label>
+              <label>Z<input type="number" value="-0.5" step="0.01" aria-label="C点Z坐标"></label>
+            </span>
+          </div>
+          <p class="cut-lock-status" id="cut-lock-status"></p>
+        </div>
         <p class="cut-note">切面结果不需要另开页面：刀移动到哪里，模型就实时剖到哪里；被切开的封口会直接在三维场景中高亮。</p>
       </section>
     </aside>
@@ -784,6 +847,11 @@
     const hTiltOutput = hTiltSlider?.closest(".field")?.querySelector("output");
     const vTiltSlider = document.querySelector('input[aria-label="切割平面垂直倾角"]');
     const vTiltOutput = vTiltSlider?.closest(".field")?.querySelector("output");
+    const cutFreeInputs = document.getElementById("cut-free-inputs");
+    const cutLockedInputs = document.getElementById("cut-locked-inputs");
+    const cutLockStatus = document.getElementById("cut-lock-status");
+    const cutModeButtons = document.querySelectorAll('[aria-label="切割模式"] .mode-button');
+    let cutModeLocked = false;
 
     /* ── 状态 ── */
     let activeModel = null;
@@ -880,7 +948,11 @@
         ].map((value) => value.toFixed(3)).join(",");
       }
 
-      applyClipping();
+      if (cutModeLocked) {
+        lockPlaneFromThreePoints();
+      } else {
+        applyClipping();
+      }
     }
 
     /* ── 对 activeModel 的所有 Mesh 材质设置 clippingPlanes ── */
@@ -904,6 +976,26 @@
       });
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) canvas.dataset.modelClipping = "true";
+    }
+
+    function clearInvalidLockedPlane(message, errorCode) {
+      if (!window.geometryLab) return;
+      window.geometryLab.cuttingPlane.visual.visible = false;
+      activeModel?.traverse((child) => {
+        if (!child.isMesh || !child.material) return;
+        const materials = Array.isArray(child.material) ? child.material : [child.material];
+        materials.forEach((material) => {
+          material.clippingPlanes = [];
+          material.needsUpdate = true;
+        });
+      });
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneLocked = "false";
+        canvas.dataset.cuttingPlaneError = errorCode;
+        canvas.dataset.modelClipping = "false";
+      }
+      if (cutLockStatus) cutLockStatus.textContent = message;
     }
 
     /* ── 渲染当前模型类型的参数控件 ── */
@@ -1013,6 +1105,85 @@
     cutSlider?.addEventListener("input", updateCuttingPlane);
     hTiltSlider?.addEventListener("input", updateCuttingPlane);
     vTiltSlider?.addEventListener("input", updateCuttingPlane);
+
+    /* ── 切割模式切换：自由切割 ↔ 题目三点锁定 ── */
+    cutModeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const isLocked = btn.textContent.includes("题目切割");
+        cutModeLocked = isLocked;
+        cutModeButtons.forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        cutFreeInputs.style.display = isLocked ? "none" : "";
+        cutLockedInputs.style.display = isLocked ? "" : "none";
+        const canvas = document.querySelector("#geometryCanvas");
+        if (isLocked) {
+          if (canvas) canvas.dataset.cuttingMode = "locked";
+          lockPlaneFromThreePoints();
+        } else {
+          window.geometryLab.cuttingPlane.visual.visible = true;
+          if (canvas) {
+            canvas.dataset.cuttingMode = "free";
+            canvas.dataset.cuttingPlaneLocked = "false";
+            delete canvas.dataset.cuttingPlaneError;
+          }
+          cutLockStatus.textContent = "";
+          updateCuttingPlane();
+        }
+      });
+    });
+
+    /* ── 由 A、B、C 三点计算平面并锁定切面 ── */
+    function lockPlaneFromThreePoints() {
+      if (!window.geometryLab) return;
+      const inputs = cutLockedInputs?.querySelectorAll('input[type="number"]');
+      if (!inputs || inputs.length < 9) {
+        clearInvalidLockedPlane("缺少 A、B、C 三点坐标", "missing-points");
+        return;
+      }
+      const vals = Array.from(inputs).map((inp) => parseFloat(inp.value));
+      const a = new window.geometryLab.THREE.Vector3(vals[0], vals[1], vals[2]);
+      const b = new window.geometryLab.THREE.Vector3(vals[3], vals[4], vals[5]);
+      const c = new window.geometryLab.THREE.Vector3(vals[6], vals[7], vals[8]);
+      if (!Number.isFinite(a.x + a.y + a.z + b.x + b.y + b.z + c.x + c.y + c.z)) {
+        clearInvalidLockedPlane("坐标不合法", "invalid-coordinate");
+        return;
+      }
+      const ab = new window.geometryLab.THREE.Vector3().subVectors(b, a);
+      const ac = new window.geometryLab.THREE.Vector3().subVectors(c, a);
+      const normal = new window.geometryLab.THREE.Vector3().crossVectors(ab, ac);
+      const lenSq = normal.lengthSq();
+      if (lenSq < 1e-12) {
+        clearInvalidLockedPlane("A、B、C 三点共线，无法确定切面", "collinear-points");
+        return;
+      }
+      normal.normalize();
+      const offset = normal.dot(a);
+      window.geometryLab.cuttingPlane.visual.visible = true;
+      window.geometryLab.cuttingPlane.setPlane(normal, offset);
+      const plane = window.geometryLab.cuttingPlane.plane;
+      const canvas = document.querySelector("#geometryCanvas");
+      if (canvas) {
+        canvas.dataset.cuttingPlaneLocked = "true";
+        canvas.dataset.cuttingPlanePointA = a.toArray().join(",");
+        canvas.dataset.cuttingPlanePointB = b.toArray().join(",");
+        canvas.dataset.cuttingPlanePointC = c.toArray().join(",");
+        canvas.dataset.cuttingPlaneNormal = plane.normal.toArray().join(",");
+        canvas.dataset.cuttingPlaneConstant = String(plane.constant);
+        canvas.dataset.cuttingMode = "locked";
+        delete canvas.dataset.cuttingPlaneError;
+      }
+      if (cutLockStatus) cutLockStatus.textContent = "已锁定切面";
+      applyClipping();
+    }
+
+    /* 三点坐标输入实时更新切面（100ms 防抖） */
+    let lockDebounceTimer = null;
+    cutLockedInputs?.addEventListener("input", () => {
+      clearTimeout(lockDebounceTimer);
+      lockDebounceTimer = setTimeout(() => {
+        if (cutModeLocked) lockPlaneFromThreePoints();
+      }, 100);
+    });
 
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
     function applyHashModel() {
