@@ -1,7 +1,23 @@
 import * as THREE from "/node_modules/three/build/three.module.js";
 
-const DEFAULT_NORMAL = new THREE.Vector3(1, 0, 0);
+export const DEFAULT_NORMAL = new THREE.Vector3(0, 1, 0);
 const LOCAL_NORMAL = new THREE.Vector3(0, 0, 1);
+
+/**
+ * 根据模型 Y 轴包围盒计算切面滑块范围。
+ * @param {number} boxMinY 模型世界 Y 最小值
+ * @param {number} boxMaxY 模型世界 Y 最大值
+ * @param {number} pad 模型外延 padding
+ * @returns {{ min: number, max: number, initial: number }|null}
+ */
+export function calculateCutSliderRange(boxMinY, boxMaxY, pad = 1.0) {
+  if (!Number.isFinite(boxMinY) || !Number.isFinite(boxMaxY)) return null;
+  if (boxMinY > boxMaxY) return null;
+  const min = +(boxMinY - pad).toFixed(2);
+  const max = +(boxMaxY + pad).toFixed(2);
+  const initial = +boxMaxY.toFixed(2);
+  return { min, max, initial };
+}
 
 function createPlaneTexture() {
   const canvas = document.createElement("canvas");

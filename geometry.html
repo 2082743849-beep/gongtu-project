@@ -1068,10 +1068,12 @@
       const model = buildModel();
       const bounds = new window.geometryLab.THREE.Box3().setFromObject(model);
       model.position.y += -1.5 - bounds.min.y;
-      window.geometryLab.scene.add(model);
-      activeModel = model;
 
+      activeModel = model;
       const placedBounds = new window.geometryLab.THREE.Box3().setFromObject(model);
+      updateCutSliderRange(placedBounds);
+
+      window.geometryLab.scene.add(model);
       const canvas = document.getElementById("geometryCanvas");
       if (canvas) {
         canvas.dataset.activeModel = model.userData.type;
@@ -1349,8 +1351,9 @@
       const T = window.geometryLab.THREE;
       const hRad = T.MathUtils.degToRad(hDeg);
       const vRad = T.MathUtils.degToRad(vDeg);
-      const normal = new T.Vector3(1, 0, 0);
-      if (Math.abs(hRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(0, 1, 0), hRad);
+      // 默认水平切面，法向量为模型局部 Y 轴（世界 Y）
+      const normal = new T.Vector3(0, 1, 0);
+      if (Math.abs(hRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(1, 0, 0), hRad);
       if (Math.abs(vRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(0, 0, 1), vRad);
 
       window.geometryLab.cuttingPlane.setPlane(normal, offset);
@@ -1368,6 +1371,22 @@
     cutSlider?.addEventListener("input", updateCuttingPlane);
     hTiltSlider?.addEventListener("input", updateCuttingPlane);
     vTiltSlider?.addEventListener("input", updateCuttingPlane);
+
+    /* 根据模型包围盒动态更新切面位置滑块范围 */
+    function updateCutSliderRange(bounds) {
+      if (!bounds || !cutSlider) return;
+      const pad = 1.0;
+      const minY = +(bounds.min.y - pad).toFixed(2);
+      const maxY = +(bounds.max.y + pad).toFixed(2);
+      cutSlider.min = String(minY);
+      cutSlider.max = String(maxY);
+      cutSlider.step = "0.01";
+      // 切面起始位于模型顶部
+      const initialOffset = +bounds.max.y.toFixed(2);
+      cutSlider.value = String(initialOffset);
+      if (cutOutput) cutOutput.textContent = initialOffset.toFixed(2);
+      updateCuttingPlane();
+    }
 
     cutawayModeButtons.forEach((button) => {
       button.addEventListener("click", () => {

@@ -10,7 +10,7 @@
 | 当前阶段 | M2 实时截面教学体验纠偏 |
 | 已完成 | 52 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-002 建立默认水平切面连续穿模 |
+| 下一项 | CUT-FIX-003 建立默认蓝色截面教学模式 |
 | 功能分支 | `feature/spatial-geometry-cutfix-plan` |
 
 ## 里程碑
@@ -297,8 +297,15 @@
   - 验收：默认教学模式、辅助真实剖开模式、视觉边界、连续交互和视频验收标准写入看板与交接
   - 结果：已暂停 COM-007，并建立 CUT-FIX-002 至 CUT-FIX-007 的前置纠偏链
   - 提交：本任务所在提交
-- [ ] ○ CUT-FIX-002 feat: 建立默认水平切面连续穿模
+- [x] ● CUT-FIX-002 feat: 建立默认水平切面连续穿模
+  - 交付文件：`geometry/cutting-plane.js`、`geometry.html`、`tests/cut-fix-002.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：切面默认位于模型顶部；沿模型局部 Y 轴连续移动到底部；进入、穿过、离开模型无跳变
+  - 结果：DEFAULT_NORMAL 改为 (0,1,0) 实现水平切面；滑块范围按模型包围盒动态计算（minY-pad ~ maxY+pad）；模型切换/尺寸变更后自动重新计算范围；280/280 全量测试通过（265+15 专项）；Playwright 录屏 + 5 张截图验证所有场景
+  - 专项测试：`tests/cut-fix-002.test.mjs`（15 项）：默认法向量 (0,1,0)、createCuttingPlane 默认行为、正方体/长方体/圆柱滑块范围、自定义 pad、非法输入降级、三种截面状态区分
+  - 录屏：`output/page@*.webm`（581 KB），展示正方体进入/穿过/离开、长方体高度变更、圆柱切换
+  - 截图：`output/01-cube-top-outside.png`、`output/02-cube-inside.png`、`output/03-cube-bottom-outside.png`、`output/04-box-default-range.png`、`output/05-cylinder-default-range.png`
+  - 提交：补证 amend，原 `0fa759e` 将被替换
 - [ ] ○ CUT-FIX-003 feat: 建立默认蓝色截面教学模式
   - 验收：模型保持完整或半透明；只填充真实交集区域；截面蓝色填充与轮廓随平移和倾斜逐帧更新
 - [ ] ○ CUT-FIX-004 feat: 缩小并弱化切割平面视觉

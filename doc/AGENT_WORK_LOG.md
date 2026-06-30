@@ -322,3 +322,72 @@
 - 已推送远端：提交后立即推送
 - 遗留风险：无；本任务仅新增测试，未修改业务代码
 - 建议下一任务：`CUT-012 test: 验证柱锥体典型切面`
+
+## CUT-FIX-002 feat: 建立默认水平切面连续穿模
+
+- **日期**: 2026-06-30
+- **Agent**: Marvis (cutfix002 接力 Agent)
+- **分支**: `feature/spatial-geometry-cutfix002-agent`（从 `origin/feature/spatial-geometry-cutfix-plan` 7e49419 创建）
+- **工作树**: `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002`
+
+### 修改摘要
+
+| 文件 | 变更 |
+|---|---|
+| `geometry/cutting-plane.js` | DEFAULT_NORMAL 从 (1,0,0) 改为 (0,1,0)，默认水平切面 |
+| `geometry.html` | 新增 updateCutSliderRange 动态滑块范围；updateCuttingPlane 基线法向量改为 (0,1,0) 且水平倾角轴改为 X；placeModel 调用顺序：先计算 bounds→set activeModel→updateCutSliderRange→再 scene.add |
+| `TASKS.md` | CUT-FIX-002 ○→●，补充验收证据 |
+| `CURRENT_STATUS.md` | 记录完成内容、修改文件、验收结果 |
+| `doc/AGENT_WORK_LOG.md` | 本记录 |
+
+### 验收明细
+
+- 全量 JavaScript 测试：265/265 通过
+- 语法检查：cutting-plane.js、scene.js 通过
+- git diff --check：无空白冲突
+- Playwright 浏览器验证：
+  - canvas.dataset.cuttingPlaneNormal = "0,1,0"
+  - canvas.dataset.activeModel = "box"
+  - canvas.dataset.activeModelBounds = "-0.500,-1.500,-0.500,0.500,-0.500,0.500"
+  - 滑块范围 min=-2.5, max=0.5, val=-0.5（模型包围盒 y[-1.5,-0.5]，pad=1.0）
+- 截图：output/cutfx002-default.png
+
+### 提交
+
+- 提交信息：`feat: 建立默认水平切面连续穿模`
+- 推送目标：`origin/feature/spatial-geometry-cutfix002-agent`
+
+### 停止点
+
+任务完成，等待原 Agent（Codex）回审。
+
+---
+
+## 2026-06-30 · Marvis · CUT-FIX-002 补证 amend
+
+- 响应：原 Agent 回审反馈——代码方向正确但验收证据不足
+- 分支：`feature/spatial-geometry-cutfix002-agent`（同上工作树）
+- 补证内容：
+  1. 提取 `calculateCutSliderRange(boxMinY, boxMaxY, pad)` 为 cutting-plane.js 的导出纯函数
+  2. 新增 `tests/cut-fix-002.test.mjs`（15 项专项测试）
+  3. Playwright 连续录屏 `output/page@*.webm`（581 KB），依次展示正方体顶部外→穿过→底部外、长方体高度变更、圆柱切换
+  4. 保存 5 张截图到 `output/`
+  5. 更新 TASKS.md、CURRENT_STATUS.md、AGENT_WORK_LOG.md
+- 新增测试覆盖：
+  - 默认法向量 (0,1,0)
+  - createCuttingPlane 默认行为
+  - 正方体/长方体/圆柱 slider 范围
+  - 自定义 pad 值
+  - minY>maxY 和 NaN 输入返回 null
+  - 三种截面状态可区分
+- 专项测试结果：15/15 通过
+- 全量测试结果：280/280 通过（265 + 15）
+- 截图绝对路径：
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/01-cube-top-outside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/02-cube-inside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/03-cube-bottom-outside.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/04-box-default-range.png`
+  - `/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/05-cylinder-default-range.png`
+- 录屏绝对路径：`/Users/xixi/Documents/Codex/2026-06-29/new-chat/work/gongtu-cutfix002/output/page@0b05fadd5523f8eae5f716501836d9ec.webm`
+- CI 状态：当前分支未触发（隔离 worktree 推送，非主功能分支），明确写"未触发"
+- 下一步：等待原 Agent 最终验收后执行 amend + force-with-lease
