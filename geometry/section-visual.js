@@ -6,18 +6,18 @@ import earcut from "/node_modules/earcut/src/earcut.js";
  *
  * 渲染管线（最小改动原则）：
  *   原始 3D 顶点 → 沿法向偏移(z-fighting防护)
- *     → 投影到平面局部 2D(仅用于耳切法输入)
- *       → earcut 三角化(支持凹多边形)
+ *     → 投影到平面局部 2D(仅用于 earcut 输入)
+ *       → earcut 三角化(支持凹/凸多边形)
  *         → 用三角索引回写原始 3D 顶点
  *           → BufferGeometry
  *
- * 关键不变量：3D 顶点坐标全程不变，仅改变三角化索引。
+ * 与原始代码的唯一区别：扇形三角化 → earcut 耳切法。
  */
 export function createSectionVisual({
   fillColor = 0xf2b84b,
   outlineColor = 0xc1523b,
   fillOpacity = 0.58,
-  surfaceOffset = 0.001, // 恢复原始值（之前改成 0.0001 导致 z-fighting）
+  surfaceOffset = 0.001, // 保持原始值
 } = {}) {
   const group = new THREE.Group();
   group.name = "LiveSectionVisual";
@@ -62,12 +62,9 @@ export function createSectionVisual({
   }
 
   /**
-   * 核心更新函数 — 仅替换三角化方式为 earcut（支持凹多边形）。
+   * 核心更新函数 — 仅替换三角化方式为 earcut。
    *
-   * 与原始代码的唯一区别：
-   *   原始：扇形三角化 indices=[0,1,2],[0,2,3],...  （仅凸形正确）
-   *   现在：earcut 耳切法                               （任意简单多边形正确）
-   *
+   * 唯一改动：扇形三角化 [0,1,2],[0,2,3],... → earcut(2D投影坐标)
    * 3D 坐标、偏移量、材质等全部保持与原始代码一致。
    */
   function update(polygon) {
@@ -88,21 +85,21 @@ export function createSectionVisual({
     // ── 3. 投影到 2D（纯数值投影，不改坐标） ──
     const flatCoords = displayPoints.map((p) => [p.dot(u), p.dot(v)]);
 
-    // ── 4. earcut 三角化（Mapbox 出品，稳定支持凹/凸多边形） ──
+    // ── 4. earcut 三角化 ──
     let nextFillGeometry;
     try {
       const triangles = earcut(flatCoords);
 
-      if (!triangles || triangles.length < 3) {
-        throw new Error("earcut 未产出有效三角形");
+      if (!triangles || triangles.length < 3 || triangles.length % 3 !== 0) {
+        throw new Error("earcat invalid output: length=" + (triangles?.length ?? 'null'));
       }
 
-      // 用 earcat 索引 + 原始 3D 坐标构建 BufferGeometry
+      // 用 earcut 索引 + 原始 3D 坐标构建 BufferGeometry
       const positions = new Float32Array(triangles.length * 3);
       for (let ti = 0; ti < triangles.length; ti++) {
         const vi = triangles[ti];
         const vec = displayPoints[vi];
-        positions[ti * 3] = vec.x;
+        positions[ti * 3]     = vec.x;
         positions[ti * 3 + 1] = vec.y;
         positions[ti * 3 + 2] = vec.z;
       }
