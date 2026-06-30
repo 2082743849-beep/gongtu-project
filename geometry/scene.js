@@ -1,6 +1,6 @@
 import * as THREE from "/node_modules/three/build/three.module.js";
 import { OrbitControls } from "/node_modules/three/examples/jsm/controls/OrbitControls.js";
-import { createCuttingPlane } from "/geometry/cutting-plane.js";
+import { createCuttingPlane } from "/work/gongtu-cutfix006a-agent/geometry/cutting-plane.js";
 
 const canvas = document.querySelector("#geometryCanvas");
 const viewport = canvas?.closest(".viewport");

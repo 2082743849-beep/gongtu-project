@@ -909,32 +909,32 @@
       }
     }
   </script>
-  <script type="module" src="/geometry/scene.js"></script>
+  <script type="module" src="/work/gongtu-cutfix006a-agent/geometry/scene.js"></script>
   <script type="module">
-    import { createBox, createCube } from "/geometry/box-generator.js";
-    import { createTriangularPrism } from "/geometry/prism-generator.js";
-    import { createTriangularPyramid } from "/geometry/pyramid-generator.js";
-    import { createCylinder } from "/geometry/cylinder-generator.js";
-    import { createCone } from "/geometry/cone-generator.js";
-    import { createSphere } from "/geometry/sphere-generator.js";
-    import { createStaircaseModel } from "/geometry/staircase-fixture.js";
+    import { createBox, createCube } from "/work/gongtu-cutfix006a-agent/geometry/box-generator.js";
+    import { createTriangularPrism } from "/work/gongtu-cutfix006a-agent/geometry/prism-generator.js";
+    import { createTriangularPyramid } from "/work/gongtu-cutfix006a-agent/geometry/pyramid-generator.js";
+    import { createCylinder } from "/work/gongtu-cutfix006a-agent/geometry/cylinder-generator.js";
+    import { createCone } from "/work/gongtu-cutfix006a-agent/geometry/cone-generator.js";
+    import { createSphere } from "/work/gongtu-cutfix006a-agent/geometry/sphere-generator.js";
+    import { createStaircaseModel } from "/work/gongtu-cutfix006a-agent/geometry/staircase-fixture.js";
     import {
       collectWorldEdges,
       intersectEdgesWithPlane,
       orderAndCloseSection,
-    } from "/geometry/section-polygon-order.js";
-    import { createSectionVisual } from "/geometry/section-visual.js";
-    import { createCutawayVisual } from "/geometry/cutaway-visual.js";
+    } from "/work/gongtu-cutfix006a-agent/geometry/section-polygon-order.js";
+    import { createSectionVisual } from "/work/gongtu-cutfix006a-agent/geometry/section-visual.js";
+    import { createCutawayVisual } from "/work/gongtu-cutfix006a-agent/geometry/cutaway-visual.js";
     import {
       getSectionDisplayPolicy,
       isSectionDisplayMode,
-    } from "/geometry/section-mode.js";
-    import { computeCutPlaneVisualSize, computeCutPlaneVisualCenter } from "/geometry/cutting-plane.js";
-    import { projectSectionTo2D, svgPointString } from "/geometry/section-2d.js";
+    } from "/work/gongtu-cutfix006a-agent/geometry/section-mode.js";
+    import { computeCutPlaneVisualSize, computeCutPlaneVisualCenter } from "/work/gongtu-cutfix006a-agent/geometry/cutting-plane.js";
+    import { projectSectionTo2D, svgPointString } from "/work/gongtu-cutfix006a-agent/geometry/section-2d.js";
     import {
       calculateSectionMetrics,
       formatSectionNumber,
-    } from "/geometry/section-metrics.js";
+    } from "/work/gongtu-cutfix006a-agent/geometry/section-metrics.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
