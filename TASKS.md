@@ -7,11 +7,11 @@
 
 | 项目 | 当前结果 |
 |---|---|
-| 当前阶段 | M2 无限切平面与精确截面 |
-| 已完成 | 44 项 |
+| 当前阶段 | M3 组合模型与空间视图题 |
+| 已完成 | 49 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-012 验证柱锥体典型切面 |
-| 功能分支 | `feature/spatial-geometry-lab` |
+| 下一项 | COM-004 建立组合柱体模型 |
+| 功能分支 | `feature/spatial-geometry-cut011-agent` |
 
 ## 里程碑
 
@@ -19,8 +19,8 @@
 |---|---|---|
 | M0 | 工程治理与现状保护 | ● 已完成 |
 | M1 | 可操作的基础 3D 实验室 | ● 已完成 |
-| M2 | 无限切平面与精确截面 | ◐ 进行中 |
-| M3 | 组合模型与空间视图题 | ○ 待开始 |
+| M2 | 无限切平面与精确截面 | ● 已完成 |
+| M3 | 组合模型与空间视图题 | ◐ 进行中 |
 | M4 | 参数化题库与管理工具 | ○ 待开始 |
 | M5 | 图片文字 AI 辅助建模 | ○ 待开始 |
 | M6 | 集成、测试与发布 | ○ 待开始 |
@@ -274,14 +274,34 @@
   - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`
   - 验收：正方形(4边 z=0)面积1周长4；三角形(3边 x+y+z=0.5)等边面积√3/2；正六边形(6边 x+y+z=0)边长一致√2/2；五边形(5边 x+2y+0.5z=0.5)；矩形偏移 z=0.25 面积1；平面离体无交点返回0点；棱线数12
   - 结果：新增8项测试，154/154 全部通过
-- [ ] ○ CUT-012 test: 验证柱锥体典型切面
-- [ ] ○ CUT-013 test: 验证共面相切和浮点误差边界
+- [x] ● CUT-012 test: 验证柱锥体典型切面
+  - 文件：`tests/cylinder-cone-sections.test.mjs`
+  - 验收：10 项测试覆盖圆柱水平/倾斜/外平面和圆锥水平/近顶点/外平面截面；圆柱 8 边形面积 2√2；圆锥近顶点 <0.001
+  - 结果：164/164 全通过
+  - 提交：`1477908`
+- [x] ● CUT-013 test: 验证共面相切和浮点误差边界
+  - 文件：`tests/coplanar-boundary.test.mjs`
+  - 验收：12 项测试覆盖共面识别、endpoint 状态、浮点容差边界、交点去重、自定义 epsilon
+  - 结果：176/176 全通过
+  - 提交：`1f94298`
 
 ## M3：组合模型与空间视图题
 
-- [ ] ○ COM-001 feat: 建立积木坐标阵列数据结构
-- [ ] ○ COM-002 feat: 建立积木组合模型生成器
-- [ ] ○ COM-003 feat: 建立积木颜色和编号标记
+- [x] ● COM-001 feat: 建立积木坐标阵列数据结构
+  - 文件：`geometry/block-array.js`、`tests/block-array.test.mjs`
+  - 验收：add/has/remove、包围盒、序列化、layersByY、project 2D 投影；17 项测试
+  - 结果：193/193 全通过
+  - 提交：`645ef2f`
+- [x] ● COM-002 feat: 建立积木组合模型生成器
+  - 文件：`geometry/block-assembly.js`、`tests/block-assembly.test.mjs`
+  - 验收：从 BlockArray 生成外表面合并几何体；2×2×2 立方体仅 12 条外棱；9 项测试
+  - 结果：202/202 全通过
+  - 提交：`9bfaf1a`
+- [x] ● COM-003 feat: 建立积木颜色和编号标记
+  - 文件：`geometry/block-assembly.js`、`tests/block-assembly.test.mjs`
+  - 验收：colorScheme uniform/layered/自定义函数；addBlockLabels Sprite 编号标签（Canvas 纹理）；removeBlockLabels；16 项新测试
+  - 结果：209/209 全通过
+  - 提交：`9674f3c`
 - [ ] ○ COM-004 feat: 建立组合柱体模型
 - [ ] ○ COM-005 feat: 建立布尔组合几何能力
 - [ ] ○ COM-006 feat: 建立前后左右俯仰视图切换
