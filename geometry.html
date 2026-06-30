@@ -778,6 +778,8 @@
     const colorInput = document.querySelector('input[aria-label="模型颜色"]');
     const opacitySlider = document.querySelector('input[aria-label="模型透明度"]');
     const opacityOutput = opacitySlider?.closest(".field")?.querySelector("output");
+    const cutSlider = document.querySelector('input[aria-label="切割平面位置"]');
+    const cutOutput = cutSlider?.closest(".field")?.querySelector("output");
 
     /* ── 状态 ── */
     let activeModel = null;
@@ -873,6 +875,25 @@
           placedBounds.max.z,
         ].map((value) => value.toFixed(3)).join(",");
       }
+
+      applyClipping();
+    }
+
+    /* ── 对 activeModel 的所有 Mesh 材质设置 clippingPlanes ── */
+    function applyClipping() {
+      if (!activeModel || !window.geometryLab) return;
+      const { cuttingPlane, THREE: T } = window.geometryLab;
+      const plane = cuttingPlane.plane;
+      activeModel.traverse((child) => {
+        if (child.isMesh && child.material) {
+          const materials = Array.isArray(child.material) ? child.material : [child.material];
+          materials.forEach((mat) => {
+            mat.clippingPlanes = [plane];
+            mat.clipShadows = true;
+            mat.needsUpdate = true;
+          });
+        }
+      });
     }
 
     /* ── 渲染当前模型类型的参数控件 ── */
@@ -948,6 +969,15 @@
       currentOpacity = parseInt(opacitySlider.value, 10) / 100;
       updateOpacityDisplay();
       debouncedPlaceModel();
+    });
+
+    /* ── 切割平面位置滑块：拖动时实时移动刀面 + 剖开模型 ── */
+    cutSlider?.addEventListener("input", () => {
+      const offset = parseFloat(cutSlider.value);
+      if (cutOutput) cutOutput.textContent = offset.toFixed(2);
+      if (!window.geometryLab) return;
+      window.geometryLab.cuttingPlane.setPlane(new window.geometryLab.THREE.Vector3(1, 0, 0), offset);
+      applyClipping();
     });
 
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
