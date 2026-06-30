@@ -780,6 +780,10 @@
     const opacityOutput = opacitySlider?.closest(".field")?.querySelector("output");
     const cutSlider = document.querySelector('input[aria-label="切割平面位置"]');
     const cutOutput = cutSlider?.closest(".field")?.querySelector("output");
+    const hTiltSlider = document.querySelector('input[aria-label="切割平面水平倾角"]');
+    const hTiltOutput = hTiltSlider?.closest(".field")?.querySelector("output");
+    const vTiltSlider = document.querySelector('input[aria-label="切割平面垂直倾角"]');
+    const vTiltOutput = vTiltSlider?.closest(".field")?.querySelector("output");
 
     /* ── 状态 ── */
     let activeModel = null;
@@ -977,21 +981,38 @@
       debouncedPlaceModel();
     });
 
-    /* ── 切割平面位置滑块：拖动时实时移动刀面 + 剖开模型 ── */
-    cutSlider?.addEventListener("input", () => {
-      const offset = parseFloat(cutSlider.value);
-      if (cutOutput) cutOutput.textContent = offset.toFixed(2);
+    /* ── 切割平面三滑块：位置、水平倾角、垂直倾角联动实时裁剪 ── */
+    function updateCuttingPlane() {
       if (!window.geometryLab) return;
-      window.geometryLab.cuttingPlane.setPlane(new window.geometryLab.THREE.Vector3(1, 0, 0), offset);
-      const canvas = document.querySelector("#geometryCanvas");
+      const offset = cutSlider ? parseFloat(cutSlider.value) : 0;
+      const hDeg = hTiltSlider ? parseFloat(hTiltSlider.value) : 0;
+      const vDeg = vTiltSlider ? parseFloat(vTiltSlider.value) : 0;
+      if (cutOutput) cutOutput.textContent = offset.toFixed(2);
+      if (hTiltOutput) hTiltOutput.textContent = hDeg + "°";
+      if (vTiltOutput) vTiltOutput.textContent = vDeg + "°";
+
+      const T = window.geometryLab.THREE;
+      const hRad = T.MathUtils.degToRad(hDeg);
+      const vRad = T.MathUtils.degToRad(vDeg);
+      const normal = new T.Vector3(1, 0, 0);
+      if (Math.abs(hRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(0, 1, 0), hRad);
+      if (Math.abs(vRad) > 1e-9) normal.applyAxisAngle(new T.Vector3(0, 0, 1), vRad);
+
+      window.geometryLab.cuttingPlane.setPlane(normal, offset);
       const plane = window.geometryLab.cuttingPlane.plane;
+      const canvas = document.querySelector("#geometryCanvas");
       if (canvas) {
         canvas.dataset.cuttingPlaneOffset = offset.toFixed(2);
         canvas.dataset.cuttingPlaneNormal = plane.normal.toArray().join(",");
         canvas.dataset.cuttingPlaneConstant = String(plane.constant);
+        canvas.dataset.cuttingPlaneHorizontalTilt = String(hDeg);
+        canvas.dataset.cuttingPlaneVerticalTilt = String(vDeg);
       }
       applyClipping();
-    });
+    }
+    cutSlider?.addEventListener("input", updateCuttingPlane);
+    hTiltSlider?.addEventListener("input", updateCuttingPlane);
+    vTiltSlider?.addEventListener("input", updateCuttingPlane);
 
     /* ── 初始化：支持 URL hash 切换初始模型 ── */
     function applyHashModel() {
