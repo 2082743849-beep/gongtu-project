@@ -10,7 +10,7 @@
 | 当前阶段 | M2 实时截面教学体验纠偏 |
 | 已完成 | 57 项 |
 | 进行中 | 0 项 |
-| 下一项 | CUT-FIX-005 保留真实剖开辅助模式 |
+| 下一项 | CUT-FIX-006 test: 验证基础与阶梯组合体连续截面 |
 | 冻结基线 | `cutfix005-handoff-v1` |
 
 ## 里程碑
@@ -338,8 +338,20 @@
   - 验收：唯一基线、隔离分支、保护范围、文件预算、测试与停止点完整
   - 结果：CUT-FIX-004 已纳入纠偏基线；新 Agent 只能从 `cutfix005-handoff-v1` 开独立分支执行 CUT-FIX-005
   - 提交：本任务所在提交
-- [ ] ○ CUT-FIX-005 feat: 保留真实剖开辅助模式
+- [x] ● CUT-FIX-005 feat: 保留真实剖开辅助模式
+  - 交付文件：`tests/cut-fix-005.test.mjs`
+  - 审计文件：`TASKS.md`、`CURRENT_STATUS.md`、`doc/AGENT_WORK_LOG.md`、`output/`
   - 验收：用户主动切换后才隐藏或透明显示被切侧；切回教学模式时完整模型与蓝色截面恢复
+  - 结果：
+    - 三种策略（teaching/hidden/transparent）策略对象正确且不可变，默认只进入 teaching
+    - hidden 模式启用裁剪但 ghost 不可见；transparent 模式显示反向透明镜像
+    - teaching → hidden → teaching 完整恢复（Canvas 状态 clipping=false, complete=true, cutaway=false）
+    - 10 次往返无场景节点增长，20 次连续切换无累积
+    - 模型重建在 hidden/transparent 下正确替换 ghost，cutawayVisual.clear() 正确释放材质和节点
+    - "显示/隐藏视觉刀面" checkbox 不影响教学/剖开策略
+    - 全量测试 358/358 通过（329 基线 + 29 专项），`git diff --check` 无空白问题
+    - 浏览器验收：4 张 Playwright 截图 + 1 张录屏终帧（headless Chromium）
+    - **未发现真实缺陷**——代码接线已正确，无需修改 `geometry.html` 或 `geometry/section-mode.js`
 - [ ] ○ CUT-FIX-006 test: 验证基础与阶梯组合体连续截面
   - 验收：正方体、圆柱、阶梯组合体覆盖进入、穿过、离开，以及平移、旋转和两轴倾斜
 - [ ] ○ CUT-FIX-007 test: 录制实时截面体验验收视频

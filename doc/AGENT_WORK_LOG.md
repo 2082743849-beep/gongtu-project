@@ -514,3 +514,35 @@
 - 冻结标签：`cutfix005-handoff-v1`
 - 授权：新 Agent 只能在 `feature/spatial-geometry-cutfix005-agent` 执行 CUT-FIX-005
 - 停止点：推送候选分支后停止，禁止合并或开始 CUT-FIX-006
+
+## 2026-06-30 · Senior Developer 接力 · CUT-FIX-005
+
+- 分支：`feature/spatial-geometry-cutfix005-agent`（独立 worktree）
+- 基线提交：`4cda7c9`（冻结标签 `cutfix005-handoff-v1`）
+- 完成任务：`feat: 保留真实剖开辅助模式`
+- 修改的交付文件：`tests/cut-fix-005.test.mjs`（新增）、`output/`（4 张截图 + 1 张录屏终帧）
+  - 注意：未修改 `geometry.html`、`geometry/section-mode.js`——代码接线已正确
+- 执行的测试：`npm run test:geometry`（358/358）、`git diff --check`
+- 测试结果：358/358 全通过（329 基线 + 29 CUT-FIX-005 专项），无空白冲突
+- 核心验收结论：
+  - 三种策略（teaching/hidden/transparent）策略对象正确且不可变 ✅
+  - 默认只进入 teaching，无裁剪、无 ghost ✅
+  - hidden 模式启用裁剪但 ghost 不可见 ✅
+  - transparent 模式显示反向透明镜像 ✅
+  - teaching → hidden → teaching 完整恢复（clipping=false, complete=true, cutaway=false）✅
+  - 10 次往返无场景节点增长（group.children.length ≤ 1）✅
+  - 20 次连续模式切换无累积（source 不变则 setSource 为 no-op）✅
+  - 模型重建在 hidden/transparent 下正确替换 ghost ✅
+  - cutawayVisual.clear() 正确释放材质和移除节点 ✅
+  - "显示/隐藏视觉刀面" checkbox 不影响教学/剖开策略 ✅
+- 浏览器验收：
+  - `01-teaching-blue-section.png`: 教学模式完整正方体 + 蓝色截面
+  - `02-hidden-cutaway.png`: 隐藏剖开模式，被切侧消失，蓝色截面保留
+  - `03-transparent-ghost.png`: 透明模式，保留半 + 透明镜像 + 蓝色截面
+  - `04-restored-teaching.png`: 切回教学模式完整恢复（Canvas 状态验证通过）
+  - `05-recording-end.png`: 连续模式切换终帧
+- 是否发现真实缺陷：**未发现**。代码接线已正确，无需修改业务代码
+- 任务提交：本任务所在提交
+- 已推送远端：提交后立即推送
+- 遗留风险：无
+- 明确声明：未合并、未开始 CUT-FIX-006
