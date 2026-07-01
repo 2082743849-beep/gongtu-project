@@ -115,6 +115,35 @@ function triangulatedArea(triangulation) {
   return area;
 }
 
+function simplifyContourPoints(points, epsilon) {
+  const simplified = points.map((point) => point.clone());
+  let changed = true;
+  while (changed && simplified.length > 3) {
+    changed = false;
+    for (let index = 0; index < simplified.length; index += 1) {
+      const previous = simplified[(index - 1 + simplified.length) % simplified.length];
+      const current = simplified[index];
+      const next = simplified[(index + 1) % simplified.length];
+      const before = current.clone().sub(previous);
+      const after = next.clone().sub(current);
+      const scale = before.length() + after.length();
+      if (scale > 0 && before.cross(after).length() <= epsilon * scale) {
+        simplified.splice(index, 1);
+        changed = true;
+        break;
+      }
+    }
+  }
+  return simplified;
+}
+
+function simplifyContours(contours, epsilon) {
+  return contours.map((contour) => {
+    const points = simplifyContourPoints(contour.points, epsilon);
+    return { ...contour, points, segmentCount: points.length };
+  });
+}
+
 /**
  * 截面引擎 V2 的纯编排入口。只计算数据，不创建或更新任何视觉对象。
  */
@@ -155,7 +184,10 @@ export function computeSectionV2(root, plane, options = {}) {
     };
   }
 
-  const topology = buildSectionContourTopology(built.contours, plane, { epsilon });
+  const contours = simplifyContours(built.contours, epsilon);
+  diagnostics.simplifiedPointCount = contours
+    .reduce((sum, contour) => sum + contour.points.length, 0);
+  const topology = buildSectionContourTopology(contours, plane, { epsilon });
   if (topology.status !== "ok") return errorResult("topology", topology, diagnostics);
 
   const triangulation = triangulateSectionTopology(topology, { epsilon });
@@ -166,9 +198,9 @@ export function computeSectionV2(root, plane, options = {}) {
   return {
     status: "ok",
     stage: "complete",
-    contourCount: built.contours.length,
+    contourCount: contours.length,
     area: triangulatedArea(triangulation),
-    contours: built.contours,
+    contours,
     topology,
     triangulation,
     diagnostics,
@@ -216,6 +248,55 @@ export function compareSectionV1V2(v1, v2, { areaTolerance = 1e-6 } = {}) {
       error: v2.error ?? null,
     },
   };
+}
+
+/**
+ * 把 V2 编排结果转换成稳定视觉模块的输入。
+ */
+export function toSectionVisualV2Data(result) {
+  if (!result || typeof result !== "object") {
+    throw new TypeError("result must be a computeSectionV2 result");
+  }
+  if (result.status === "empty") {
+    return { status: "ok", vertices3D: [], indices: [], contours: [] };
+  }
+  if (result.status !== "ok") {
+    throw new RangeError(`cannot render V2 result with status "${result.status}"`);
+  }
+  if (
+    !Array.isArray(result.triangulation?.vertices3D)
+    || !Array.isArray(result.triangulation?.indices)
+    || !Array.isArray(result.contours)
+  ) {
+    throw new TypeError("successful V2 result is missing triangulation or contours");
+  }
+  return {
+    status: "ok",
+    vertices3D: result.triangulation.vertices3D,
+    indices: result.triangulation.indices,
+    contours: result.contours,
+  };
+}
+
+/**
+ * 默认选择 V2；显式开关或 V2 错误才选择 V1。
+ */
+export function chooseSectionProductionEngine(v2Result, { forceLegacy = false } = {}) {
+  if (!v2Result || typeof v2Result !== "object") {
+    throw new TypeError("v2Result must be an object");
+  }
+  if (forceLegacy) return { engine: "v1", reason: "forced-legacy" };
+  if (v2Result.status === "error") {
+    return {
+      engine: "v1",
+      reason: "v2-error",
+      error: v2Result.error ?? "unknown-error",
+    };
+  }
+  if (v2Result.status !== "ok" && v2Result.status !== "empty") {
+    throw new RangeError(`unsupported V2 status "${v2Result.status}"`);
+  }
+  return { engine: "v2", reason: "production" };
 }
 
 export { DEFAULT_EPSILON };

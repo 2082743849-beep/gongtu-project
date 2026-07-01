@@ -7,8 +7,8 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：SEC2-007
-- 任务：`feat: 集成截面引擎 V2 影子模式`
+- 编号：SEC2-008
+- 任务：`feat: 切换生产截面到 V2`
 
 ## 本次成果
 
@@ -31,9 +31,25 @@
 - `node --check geometry/section-engine-v2.js`：通过。
 - `git diff --check`：通过。
 
+## 本次成果
+
+- 页面默认把 V2 三角化结果交给稳定 V2 视觉，并清理旧 V1 视觉。
+- `?sectionEngine=v1` 强制回退；V2 明确错误或异常时自动保留 V1。
+- 成功、空截面、强制回退三种路径均只允许一套截面视觉生效。
+- 删除三角剖分内部对角线留下的共线轮廓点，修复过三顶点时的零面积 Earcut 三角形。
+- 10 类黄金答案全部由真实三角网格端到端通过。
+
+## 验收证据
+
+- 聚焦测试：21/21 通过（含黄金子测试 10/10）。
+- `npm run test:geometry`：470/470 通过。
+- 浏览器默认入口：`sectionEngine=v2`、`sectionV2Mode=production`、无控制台错误。
+- 浏览器回退入口：`?sectionEngine=v1` 得到 `forced-legacy`、无控制台错误。
+- `node --check geometry/section-engine-v2.js` 与 `git diff --check`：通过。
+
 ## 下一步
 
-SEC2-008：在黄金样例和同类凹截面对比通过的前提下，把生产截面切换到 V2，并保留临时回退开关。
+SEC2-009：验证切面进入、连续穿过、离开模型时无非法空帧、残留截面或 GPU 对象增长。
 
 ## 关键注意事项
 

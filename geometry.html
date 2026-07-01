@@ -922,6 +922,7 @@
       orderAndCloseSection,
     } from "/geometry/plane-intersections.js";
     import { createSectionVisual } from "/geometry/section-visual.js";
+    import { createSectionVisualV2 } from "/geometry/section-visual-v2.js";
     import { createCutawayVisual } from "/geometry/cutaway-visual.js";
     import {
       getSectionDisplayPolicy,
@@ -934,8 +935,10 @@
       formatSectionNumber,
     } from "/geometry/section-metrics.js";
     import {
+      chooseSectionProductionEngine,
       compareSectionV1V2,
       computeSectionV2,
+      toSectionVisualV2Data,
     } from "/geometry/section-engine-v2.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
@@ -1010,10 +1013,13 @@
     let currentColor = colorInput?.value || "#f5f1e8";
     let paramValues = {};
     let sectionVisual = null;
+    let sectionVisualV2 = null;
     let cutawayVisual = null;
     let cutawayMode = "teaching";
     let latestSectionPolygon = null;
     let section2dVisible = false;
+    const forceLegacySectionEngine = new URLSearchParams(window.location.search)
+      .get("sectionEngine") === "v1";
 
     /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
     function initParamValues() {
@@ -1221,9 +1227,24 @@
       return sectionVisual;
     }
 
+    function ensureSectionVisualV2() {
+      if (!sectionVisualV2 && window.geometryLab) {
+        sectionVisualV2 = createSectionVisualV2({
+          fillColor: 0x4f6df5,
+          outlineColor: 0x2446d8,
+          fillOpacity: 0.72,
+        });
+        sectionVisualV2.fill.material.depthTest = false;
+        sectionVisualV2.fill.material.needsUpdate = true;
+        window.geometryLab.scene.add(sectionVisualV2.group);
+      }
+      return sectionVisualV2;
+    }
+
     function clearSectionVisual(status = "empty") {
       latestSectionPolygon = null;
       ensureSectionVisual()?.clear();
+      sectionVisualV2?.clear();
       const canvas = document.querySelector("#geometryCanvas");
       if (canvas) {
         canvas.dataset.sectionStatus = status;
@@ -1322,9 +1343,32 @@
           window.geometryLab.cuttingPlane.plane,
         );
         const comparison = compareSectionV1V2(legacySummary, v2Result);
+        const production = chooseSectionProductionEngine(v2Result, {
+          forceLegacy: forceLegacySectionEngine,
+        });
         const canvas = document.querySelector("#geometryCanvas");
+        if (production.engine === "v2") {
+          ensureSectionVisualV2().update(toSectionVisualV2Data(v2Result));
+          sectionVisual?.clear();
+          if (v2Result.status === "ok") {
+            const firstContour = v2Result.contours[0];
+            latestSectionPolygon = firstContour
+              ? {
+                  status: "polygon",
+                  points: firstContour.points,
+                  signedArea: v2Result.area,
+                }
+              : null;
+            renderSection2D();
+            renderSectionMetrics();
+          }
+        } else {
+          sectionVisualV2?.clear();
+        }
         if (canvas) {
-          canvas.dataset.sectionV2Mode = "shadow";
+          canvas.dataset.sectionEngine = production.engine;
+          canvas.dataset.sectionEngineReason = production.reason;
+          canvas.dataset.sectionV2Mode = production.engine === "v2" ? "production" : "fallback";
           canvas.dataset.sectionV2Status = v2Result.status;
           canvas.dataset.sectionV2Stage = v2Result.stage;
           canvas.dataset.sectionV2ContourCount = String(v2Result.contourCount);
@@ -1335,11 +1379,20 @@
           canvas.dataset.sectionV2AreaMatch = String(comparison.areaMatch);
           canvas.dataset.sectionV2AreaDelta = String(comparison.areaDelta);
           canvas.dataset.sectionV2Error = v2Result.error ?? "";
+          if (production.engine === "v2") {
+            canvas.dataset.sectionStatus = v2Result.status === "ok" ? "visible" : "empty";
+            canvas.dataset.sectionVertexCount = String(
+              v2Result.contours.reduce((sum, contour) => sum + contour.points.length, 0),
+            );
+            canvas.dataset.sectionArea = String(v2Result.area);
+          }
         }
       } catch (error) {
         const canvas = document.querySelector("#geometryCanvas");
         if (canvas) {
-          canvas.dataset.sectionV2Mode = "shadow";
+          canvas.dataset.sectionV2Mode = "fallback";
+          canvas.dataset.sectionEngine = "v1";
+          canvas.dataset.sectionEngineReason = "v2-exception";
           canvas.dataset.sectionV2Status = "error";
           canvas.dataset.sectionV2Stage = "orchestration";
           canvas.dataset.sectionV2Match = "false";
