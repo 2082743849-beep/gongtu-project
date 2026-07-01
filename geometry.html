@@ -933,6 +933,10 @@
       calculateSectionMetrics,
       formatSectionNumber,
     } from "/geometry/section-metrics.js";
+    import {
+      compareSectionV1V2,
+      computeSectionV2,
+    } from "/geometry/section-engine-v2.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -1283,6 +1287,7 @@
         clearSectionVisual("no-model");
         return;
       }
+      let legacySummary = { status: "error", area: 0 };
       try {
         const plane = window.geometryLab.cuttingPlane.plane;
         const intersections = intersectEdgesWithPlane(
@@ -1291,22 +1296,56 @@
         );
         const polygon = orderAndCloseSection(intersections.points, plane);
         if (polygon.status !== "polygon") {
+          legacySummary = { status: polygon.reason, area: 0 };
           clearSectionVisual(polygon.reason);
-          return;
-        }
-        latestSectionPolygon = polygon;
-        ensureSectionVisual().update(polygon);
-        renderSection2D();
-        renderSectionMetrics();
-        const canvas = document.querySelector("#geometryCanvas");
-        if (canvas) {
-          canvas.dataset.sectionStatus = "visible";
-          canvas.dataset.sectionVertexCount = String(polygon.points.length);
-          canvas.dataset.sectionArea = String(polygon.signedArea);
+        } else {
+          legacySummary = { status: "visible", area: polygon.signedArea };
+          latestSectionPolygon = polygon;
+          ensureSectionVisual().update(polygon);
+          renderSection2D();
+          renderSectionMetrics();
+          const canvas = document.querySelector("#geometryCanvas");
+          if (canvas) {
+            canvas.dataset.sectionStatus = "visible";
+            canvas.dataset.sectionVertexCount = String(polygon.points.length);
+            canvas.dataset.sectionArea = String(polygon.signedArea);
+          }
         }
       } catch (error) {
         clearSectionVisual("error");
         console.error("截面高亮更新失败", error);
+      }
+
+      try {
+        const v2Result = computeSectionV2(
+          activeModel,
+          window.geometryLab.cuttingPlane.plane,
+        );
+        const comparison = compareSectionV1V2(legacySummary, v2Result);
+        const canvas = document.querySelector("#geometryCanvas");
+        if (canvas) {
+          canvas.dataset.sectionV2Mode = "shadow";
+          canvas.dataset.sectionV2Status = v2Result.status;
+          canvas.dataset.sectionV2Stage = v2Result.stage;
+          canvas.dataset.sectionV2ContourCount = String(v2Result.contourCount);
+          canvas.dataset.sectionV2Area = String(v2Result.area);
+          canvas.dataset.sectionV2Match = String(comparison.match);
+          canvas.dataset.sectionV2StatusMatch = String(comparison.statusMatch);
+          canvas.dataset.sectionV2ContourMatch = String(comparison.contourCountMatch);
+          canvas.dataset.sectionV2AreaMatch = String(comparison.areaMatch);
+          canvas.dataset.sectionV2AreaDelta = String(comparison.areaDelta);
+          canvas.dataset.sectionV2Error = v2Result.error ?? "";
+        }
+      } catch (error) {
+        const canvas = document.querySelector("#geometryCanvas");
+        if (canvas) {
+          canvas.dataset.sectionV2Mode = "shadow";
+          canvas.dataset.sectionV2Status = "error";
+          canvas.dataset.sectionV2Stage = "orchestration";
+          canvas.dataset.sectionV2Match = "false";
+          canvas.dataset.sectionV2Error = error.message;
+        }
+        console.error("截面引擎 V2 影子计算失败", error);
       }
     }
 
