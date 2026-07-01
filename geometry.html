@@ -333,6 +333,48 @@
       gap: 8px;
     }
 
+    .interaction-tools {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 3;
+      display: flex;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, 0.9);
+      box-shadow: 0 8px 24px rgba(63, 47, 28, 0.08);
+      backdrop-filter: blur(10px);
+    }
+
+    .interaction-button {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      color: var(--ink-soft);
+      background: transparent;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .interaction-button[aria-pressed="true"] {
+      color: var(--teal);
+      border-color: rgba(57, 115, 107, 0.2);
+      background: var(--teal-soft);
+      font-weight: 700;
+    }
+
+    .viewport[data-interaction-mode="plane"] #geometryCanvas {
+      cursor: ns-resize;
+      touch-action: none;
+    }
+
+    .viewport[data-interaction-dragging="true"] #geometryCanvas {
+      cursor: grabbing;
+    }
+
     .tool-button {
       width: 40px;
       height: 40px;
@@ -916,6 +958,10 @@
             <span>拖动或倾斜红色切平面，模型与高亮截面将实时变化。</span>
           </div>
         </div>
+        <div class="interaction-tools" aria-label="三维交互模式">
+          <button class="interaction-button" type="button" data-interaction-mode="orbit" aria-pressed="true">旋转视角</button>
+          <button class="interaction-button" type="button" data-interaction-mode="plane" aria-pressed="false">拖动切面</button>
+        </div>
         <div class="viewport-tools" aria-label="视图工具">
           <button class="tool-button" type="button" aria-label="放大三维视图" title="放大三维视图">＋</button>
           <button class="tool-button" type="button" aria-label="缩小三维视图" title="缩小三维视图">−</button>
@@ -1074,6 +1120,7 @@
       computeSectionV2,
       toSectionVisualV2Data,
     } from "/geometry/section-engine-v2.js";
+    import { createViewportInteractionMode } from "/geometry/viewport-interaction-mode.js";
 
     /* ── 每个模型类型对应的参数控件定义 ── */
     const PARAM_DEFS = {
@@ -1138,6 +1185,8 @@
     const section2dMeta = document.getElementById("section2dMeta");
     const sectionMetricsContent = document.getElementById("sectionMetricsContent");
     const cutplaneVisualToggle = document.getElementById("cutplane-visual-toggle");
+    const viewport = document.querySelector(".viewport");
+    const interactionModeButtons = document.querySelectorAll("[data-interaction-mode]");
     let cutModeLocked = false;
 
     /* ── 状态 ── */
@@ -1154,6 +1203,84 @@
     let section2dVisible = false;
     const forceLegacySectionEngine = new URLSearchParams(window.location.search)
       .get("sectionEngine") === "v1";
+    const viewportInteraction = createViewportInteractionMode();
+    let planeDragStartOffset = 0;
+
+    function syncViewportInteraction(nextMode = viewportInteraction.snapshot().mode) {
+      const previous = viewportInteraction.snapshot();
+      const state = viewportInteraction.setMode(nextMode);
+      const canvas = document.getElementById("geometryCanvas");
+      if (
+        previous.dragging
+        && !state.dragging
+        && canvas?.hasPointerCapture(previous.pointerId)
+      ) {
+        canvas.releasePointerCapture(previous.pointerId);
+      }
+      if (window.geometryLab?.controls) {
+        window.geometryLab.controls.enabled = state.mode === "orbit";
+      }
+      interactionModeButtons.forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.interactionMode === state.mode),
+        );
+      });
+      if (viewport) {
+        viewport.dataset.interactionMode = state.mode;
+        viewport.dataset.interactionDragging = String(state.dragging);
+      }
+      if (canvas) {
+        canvas.dataset.interactionMode = state.mode;
+        canvas.dataset.interactionDragging = String(state.dragging);
+        canvas.dataset.orbitEnabled = String(state.mode === "orbit");
+      }
+    }
+
+    interactionModeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        syncViewportInteraction(button.dataset.interactionMode);
+      });
+    });
+
+    const interactionCanvas = document.getElementById("geometryCanvas");
+    interactionCanvas?.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || cutModeLocked) return;
+      const started = viewportInteraction.begin(event.pointerId, event.clientY);
+      if (!started.accepted) return;
+      planeDragStartOffset = Number.parseFloat(cutSlider?.value ?? "0") || 0;
+      interactionCanvas.setPointerCapture(event.pointerId);
+      syncViewportInteraction();
+      event.preventDefault();
+    });
+    interactionCanvas?.addEventListener("pointermove", (event) => {
+      const moved = viewportInteraction.move(
+        event.pointerId,
+        event.clientY,
+        viewport?.clientHeight ?? 0,
+      );
+      if (!moved.accepted || !cutSlider) return;
+      const min = Number.parseFloat(cutSlider.min);
+      const max = Number.parseFloat(cutSlider.max);
+      const nextOffset = Math.min(
+        max,
+        Math.max(min, planeDragStartOffset - moved.deltaNormalized * (max - min)),
+      );
+      cutSlider.value = String(nextOffset);
+      updateCuttingPlane();
+      event.preventDefault();
+    });
+    function endPlanePointer(event) {
+      const ended = viewportInteraction.end(event.pointerId);
+      if (!ended.accepted) return;
+      if (interactionCanvas?.hasPointerCapture(event.pointerId)) {
+        interactionCanvas.releasePointerCapture(event.pointerId);
+      }
+      syncViewportInteraction();
+    }
+    interactionCanvas?.addEventListener("pointerup", endPlanePointer);
+    interactionCanvas?.addEventListener("pointercancel", endPlanePointer);
+    syncViewportInteraction();
 
     /* 从 PARAM_DEFS 初始化各模型类型的默认参数 */
     function initParamValues() {

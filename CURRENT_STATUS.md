@@ -7,8 +7,8 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：UX2-002
-- 任务：`style: 压缩空间几何实验室首屏布局`
+- 编号：UX2-003
+- 任务：`feat: 建立视角与切面拖拽模式`
 
 ## 本次成果
 
@@ -50,9 +50,31 @@
 - 760×800：document scrollHeight=2441，窄屏自然滚动。
 - 浏览器无控制台错误；`git diff --check` 通过。
 
+## 本次成果
+
+- `geometry/viewport-interaction-mode.js`
+  - 只允许 `orbit` / `plane` 两个互斥模式。
+  - 单活动 pointerId；切回 orbit 自动取消拖拽。
+  - 输出按画布高度归一化的纵向拖动距离。
+- `geometry.html`
+  - 新增“旋转视角 / 拖动切面”显式按钮。
+  - plane 模式禁用 OrbitControls；orbit 模式恢复。
+  - pointer capture 保证拖拽生命周期完整；三点锁定时拒绝拖动覆盖。
+  - Canvas 记录 mode、dragging、orbitEnabled。
+- `tests/viewport-interaction-mode.test.mjs`：状态转换、单 pointer、取消、非法输入和页面接线。
+
+## 验收证据
+
+- 专项：5/5 通过。
+- 全量：483/483 通过。
+- plane 手势：offset `-0.50 → -1.19`，camera 不变。
+- orbit 手势：camera 明显变化，offset 保持 `-1.19`。
+- locked + plane：camera 和 offset 均不变。
+- `node --check` 与 `git diff --check`：通过。
+
 ## 下一步
 
-UX2-003：建立“旋转视角 / 拖动切面”显式模式状态机，避免 OrbitControls 和切面指针事件冲突。
+UX2-004：只更新最终交接和冻结点，不再修改业务代码。
 
 ## 关键注意事项
 
