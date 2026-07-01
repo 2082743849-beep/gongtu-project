@@ -7,53 +7,43 @@
 ## 当前任务
 
 - 状态：● 已完成
-- 编号：SEC2-008
-- 任务：`feat: 切换生产截面到 V2`
+- 编号：SEC2-009
+- 任务：`test: 验证连续切割无闪烁`
 
 ## 本次成果
 
-- `geometry/section-engine-v2.js`
-  - 遍历 Object3D 内所有实体 BufferGeometry Mesh，兼容 indexed/non-indexed 几何。
-  - 将三角面顶点转换到世界坐标后，串联 SEC2-002～005 的完整计算链。
-  - 输出稳定的 ok/empty/error 状态、轮廓数、三角化面积和分阶段诊断。
-  - 提供 V1/V2 状态、轮廓数、面积差异的可序列化比较结果。
-- `geometry.html`
-  - 在旧 `updateSectionVisual()` 内增加 V2 旁路计算。
-  - 只向 Canvas `data-section-v2-*` 写入比较证据。
-  - V1 仍是唯一调用 `sectionVisual.update()` 的生产显示路径，未创建 V2 视觉对象。
-- `tests/section-engine-v2.integration.test.mjs`
-  - 覆盖世界变换、indexed/non-indexed、多个轮廓、空截面、拓扑错误和比较契约。
+- `tests/section-engine-v2-continuity.test.mjs`
+  - 正方体水平进入、穿过、离开状态序列无非法空帧。
+  - 正方体斜切严格内部全部保持有效面积截面。
+  - 18 方块阶梯跨 z=0/1/2/3 共面边界保持 8 顶点、面积 6。
+  - 生产视觉 BufferGeometry 身份固定，离开后 fill/outline drawRange 归零。
+  - 相同帧不重复更新 GPU attribute。
+- `doc/AGENT_HANDOFF.md`
+  - 固定 V2 全链算法、模块契约、生产回退、冻结标签、已知边界和禁止事项。
+  - 标明后续任务难度与建议顺序。
+- `doc/SECTION_ENGINE_V2_PLAN.md`
+  - 更新为 SEC2-001～009 已完成状态。
+  - 补充完成后的任务顺序和扩展风险。
 
-## 验收证据
+## 最终验收证据
 
-- 聚焦测试：8/8 通过。
-- `npm run test:geometry`：457/457 通过。
-- `node --check geometry/section-engine-v2.js`：通过。
-- `git diff --check`：通过。
-
-## 本次成果
-
-- 页面默认把 V2 三角化结果交给稳定 V2 视觉，并清理旧 V1 视觉。
-- `?sectionEngine=v1` 强制回退；V2 明确错误或异常时自动保留 V1。
-- 成功、空截面、强制回退三种路径均只允许一套截面视觉生效。
-- 删除三角剖分内部对角线留下的共线轮廓点，修复过三顶点时的零面积 Earcut 三角形。
-- 10 类黄金答案全部由真实三角网格端到端通过。
-
-## 验收证据
-
-- 聚焦测试：21/21 通过（含黄金子测试 10/10）。
-- `npm run test:geometry`：470/470 通过。
+- SEC2-008 真实三角网格黄金样例：10/10 通过。
+- SEC2-009 连续性专项：5/5 通过。
+- 全量 `npm run test:geometry`：475/475 通过。
 - 浏览器默认入口：`sectionEngine=v2`、`sectionV2Mode=production`、无控制台错误。
 - 浏览器回退入口：`?sectionEngine=v1` 得到 `forced-legacy`、无控制台错误。
 - `node --check geometry/section-engine-v2.js` 与 `git diff --check`：通过。
 
 ## 下一步
 
-SEC2-009：验证切面进入、连续穿过、离开模型时无非法空帧、残留截面或 GPU 对象增长。
+1. UX2-002：压缩首屏布局，难度低，只处理布局，不修改 V2。
+2. UX2-003：视角与切面拖拽状态机，难度高，必须处理 OrbitControls 指针冲突。
+3. CUT-FIX-007：按参考视频录制人工体验证据，难度中。
+4. COM-007：恢复组合体验收，难度中高，重点验证分层多 Mesh 接缝。
 
 ## 关键注意事项
 
-- 当前页面仍显示 V1；`data-section-v2-mode="shadow"` 是未切生产的可观察证据。
-- V2 遇到重叠壳体会明确报告 topology/error，不会静默显示错误截面。
-- SEC2-008 才允许创建并显示 `section-visual-v2.js`，且必须保留 V1 回退路径。
+- 当前页面默认显示 V2；查询参数 `?sectionEngine=v1` 是临时回退。
+- V2 遇到未布尔合并的重叠壳体会明确报告 topology/error 并自动回退。
+- 旧二维辅助图和详细顶点列表仍偏向单轮廓表达，扩展时必须另建任务。
 - 禁止合并 `cutfix006a-experimental-do-not-merge-v1`。
